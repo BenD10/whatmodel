@@ -1,6 +1,7 @@
 <script>
   import gpus from '$lib/data/gpus.json';
   import SearchSelect from './SearchSelect.svelte';
+  import { trackGpuSelected, trackManualVram, trackFilterChanged } from '$lib/analytics.js';
 
   const gpuItems = gpus.map((g) => ({
     id: g.id,
@@ -57,6 +58,7 @@
     } else {
       vram = gpu.vram_gb;
       bandwidth = gpu.bandwidth_gbps;
+      trackGpuSelected(gpu.name, gpu.vram_gb, gpu.bandwidth_gbps);
     }
   }
 
@@ -69,6 +71,7 @@
     const opt = selectedGpu.vram_options[Number(selectedMemoryIdx)];
     vram = opt.vram_gb;
     bandwidth = opt.bandwidth_gbps;
+    trackGpuSelected(selectedGpu.name, opt.vram_gb, opt.bandwidth_gbps);
   }
 
   function onManualInput() {
@@ -76,14 +79,19 @@
     const val = parseFloat(manualVram);
     vram = !Number.isNaN(val) && val > 0 ? val : null;
     bandwidth = null; // unknown for manual entry
+    if (vram != null) {
+      trackManualVram(vram);
+    }
   }
 
   function onContextChange() {
     minContextK = contextSelection === '' ? null : Number(contextSelection);
+    trackFilterChanged('min_context', minContextK);
   }
 
   function onSpeedChange() {
     minTokPerSec = speedSelection === '' ? null : Number(speedSelection);
+    trackFilterChanged('min_speed', minTokPerSec);
   }
 </script>
 
