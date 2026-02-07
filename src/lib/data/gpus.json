@@ -1,4 +1,12 @@
 [
+  { "id": "rtx-5090",          "name": "GeForce RTX 5090",          "manufacturer": "NVIDIA", "vram_gb": 32, "bandwidth_gbps": 1792 },
+  { "id": "rtx-5080",          "name": "GeForce RTX 5080",          "manufacturer": "NVIDIA", "vram_gb": 16, "bandwidth_gbps": 896 },
+  { "id": "rtx-5070-ti",       "name": "GeForce RTX 5070 Ti",      "manufacturer": "NVIDIA", "vram_gb": 16, "bandwidth_gbps": 896 },
+  { "id": "rtx-5070",          "name": "GeForce RTX 5070",          "manufacturer": "NVIDIA", "vram_gb": 12, "bandwidth_gbps": 672 },
+  { "id": "rtx-5060-ti-16gb",  "name": "GeForce RTX 5060 Ti 16GB", "manufacturer": "NVIDIA", "vram_gb": 16, "bandwidth_gbps": 448 },
+  { "id": "rtx-5060-ti",       "name": "GeForce RTX 5060 Ti",      "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 448 },
+  { "id": "rtx-5060",          "name": "GeForce RTX 5060",          "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 448 },
+
   { "id": "rtx-4090",          "name": "GeForce RTX 4090",          "manufacturer": "NVIDIA", "vram_gb": 24, "bandwidth_gbps": 1008 },
   { "id": "rtx-4080-super",    "name": "GeForce RTX 4080 SUPER",   "manufacturer": "NVIDIA", "vram_gb": 16, "bandwidth_gbps": 736 },
   { "id": "rtx-4080",          "name": "GeForce RTX 4080",          "manufacturer": "NVIDIA", "vram_gb": 16, "bandwidth_gbps": 717 },
@@ -19,16 +27,53 @@
   { "id": "rtx-3070",          "name": "GeForce RTX 3070",          "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 448 },
   { "id": "rtx-3060-ti",       "name": "GeForce RTX 3060 Ti",      "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 448 },
   { "id": "rtx-3060",          "name": "GeForce RTX 3060",          "manufacturer": "NVIDIA", "vram_gb": 12, "bandwidth_gbps": 360 },
+  { "id": "rtx-3050",          "name": "GeForce RTX 3050",          "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 224 },
+
+  { "id": "rtx-2080-ti",       "name": "GeForce RTX 2080 Ti",      "manufacturer": "NVIDIA", "vram_gb": 11, "bandwidth_gbps": 616 },
+  { "id": "rtx-2080-super",    "name": "GeForce RTX 2080 SUPER",   "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 496 },
+  { "id": "rtx-2080",          "name": "GeForce RTX 2080",          "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 448 },
+  { "id": "rtx-2070-super",    "name": "GeForce RTX 2070 SUPER",   "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 448 },
+  { "id": "rtx-2070",          "name": "GeForce RTX 2070",          "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 448 },
+  { "id": "rtx-2060-super",    "name": "GeForce RTX 2060 SUPER",   "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 448 },
+  { "id": "rtx-2060",          "name": "GeForce RTX 2060",          "manufacturer": "NVIDIA", "vram_gb": 6,  "bandwidth_gbps": 336 },
+
+  { "id": "gtx-1660-super",    "name": "GeForce GTX 1660 SUPER",   "manufacturer": "NVIDIA", "vram_gb": 6,  "bandwidth_gbps": 336 },
+  { "id": "gtx-1660-ti",       "name": "GeForce GTX 1660 Ti",      "manufacturer": "NVIDIA", "vram_gb": 6,  "bandwidth_gbps": 288 },
+  { "id": "gtx-1660",          "name": "GeForce GTX 1660",          "manufacturer": "NVIDIA", "vram_gb": 6,  "bandwidth_gbps": 192 },
+
+  { "id": "gtx-1080-ti",       "name": "GeForce GTX 1080 Ti",      "manufacturer": "NVIDIA", "vram_gb": 11, "bandwidth_gbps": 484 },
+  { "id": "gtx-1080",          "name": "GeForce GTX 1080",          "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 320 },
+  { "id": "gtx-1070-ti",       "name": "GeForce GTX 1070 Ti",      "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 256 },
+  { "id": "gtx-1070",          "name": "GeForce GTX 1070",          "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 256 },
 
   { "id": "rtx-a6000",         "name": "RTX A6000",                 "manufacturer": "NVIDIA", "vram_gb": 48, "bandwidth_gbps": 768 },
   { "id": "rtx-a5000",         "name": "RTX A5000",                 "manufacturer": "NVIDIA", "vram_gb": 24, "bandwidth_gbps": 768 },
   { "id": "rtx-a4000",         "name": "RTX A4000",                 "manufacturer": "NVIDIA", "vram_gb": 16, "bandwidth_gbps": 448 },
 
-  { "id": "rx-9070-xt",         "name": "Radeon RX 9070 XT",        "manufacturer": "AMD",    "vram_gb": 16, "bandwidth_gbps": 640 },
+  { "id": "tesla-p40",         "name": "Tesla P40",                 "manufacturer": "NVIDIA", "vram_gb": 24, "bandwidth_gbps": 346 },
+
+  { "id": "rx-9070-xt",        "name": "Radeon RX 9070 XT",        "manufacturer": "AMD",    "vram_gb": 16, "bandwidth_gbps": 640 },
+  { "id": "rx-9070",           "name": "Radeon RX 9070",            "manufacturer": "AMD",    "vram_gb": 16, "bandwidth_gbps": 640 },
 
   { "id": "rx-7900-xtx",       "name": "Radeon RX 7900 XTX",       "manufacturer": "AMD",    "vram_gb": 24, "bandwidth_gbps": 960 },
   { "id": "rx-7900-xt",        "name": "Radeon RX 7900 XT",        "manufacturer": "AMD",    "vram_gb": 20, "bandwidth_gbps": 800 },
   { "id": "rx-7800-xt",        "name": "Radeon RX 7800 XT",        "manufacturer": "AMD",    "vram_gb": 16, "bandwidth_gbps": 624 },
   { "id": "rx-7700-xt",        "name": "Radeon RX 7700 XT",        "manufacturer": "AMD",    "vram_gb": 12, "bandwidth_gbps": 432 },
-  { "id": "rx-7600",           "name": "Radeon RX 7600",            "manufacturer": "AMD",    "vram_gb": 8,  "bandwidth_gbps": 288 }
+  { "id": "rx-7600-xt",        "name": "Radeon RX 7600 XT",        "manufacturer": "AMD",    "vram_gb": 16, "bandwidth_gbps": 288 },
+  { "id": "rx-7600",           "name": "Radeon RX 7600",            "manufacturer": "AMD",    "vram_gb": 8,  "bandwidth_gbps": 288 },
+
+  { "id": "rx-6900-xt",        "name": "Radeon RX 6900 XT",        "manufacturer": "AMD",    "vram_gb": 16, "bandwidth_gbps": 512 },
+  { "id": "rx-6800-xt",        "name": "Radeon RX 6800 XT",        "manufacturer": "AMD",    "vram_gb": 16, "bandwidth_gbps": 512 },
+  { "id": "rx-6800",           "name": "Radeon RX 6800",            "manufacturer": "AMD",    "vram_gb": 16, "bandwidth_gbps": 512 },
+  { "id": "rx-6750-xt",        "name": "Radeon RX 6750 XT",        "manufacturer": "AMD",    "vram_gb": 12, "bandwidth_gbps": 432 },
+  { "id": "rx-6700-xt",        "name": "Radeon RX 6700 XT",        "manufacturer": "AMD",    "vram_gb": 12, "bandwidth_gbps": 384 },
+  { "id": "rx-6650-xt",        "name": "Radeon RX 6650 XT",        "manufacturer": "AMD",    "vram_gb": 8,  "bandwidth_gbps": 280 },
+  { "id": "rx-6600-xt",        "name": "Radeon RX 6600 XT",        "manufacturer": "AMD",    "vram_gb": 8,  "bandwidth_gbps": 256 },
+  { "id": "rx-6600",           "name": "Radeon RX 6600",            "manufacturer": "AMD",    "vram_gb": 8,  "bandwidth_gbps": 224 },
+
+  { "id": "rx-5700-xt",        "name": "Radeon RX 5700 XT",        "manufacturer": "AMD",    "vram_gb": 8,  "bandwidth_gbps": 448 },
+
+  { "id": "arc-b580",          "name": "Arc B580",                  "manufacturer": "Intel",  "vram_gb": 12, "bandwidth_gbps": 456 },
+  { "id": "arc-a770",          "name": "Arc A770",                  "manufacturer": "Intel",  "vram_gb": 16, "bandwidth_gbps": 560 },
+  { "id": "arc-a750",          "name": "Arc A750",                  "manufacturer": "Intel",  "vram_gb": 8,  "bandwidth_gbps": 512 }
 ]

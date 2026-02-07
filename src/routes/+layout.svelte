@@ -1,4 +1,5 @@
 <script>
+  import { base } from '$app/paths';
   import '../app.css';
 
   let { children } = $props();
@@ -7,7 +8,7 @@
 <div class="shell">
   <header>
     <div class="brand">
-      <img src="/logo.png" alt="" class="logo" />
+      <img src="{base}/logo.png" alt="" class="logo" />
       <div>
         <h1>
           <span class="what">What</span>
