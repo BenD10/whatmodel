@@ -8,7 +8,7 @@
 <div class="shell">
   <header>
     <div class="brand">
-      <img src="{base}/logo.png" alt="What Models? logo" class="logo" />
+      <img src="{base}/logo.png" alt="What Models? logo" class="logo" width="96" height="96" />
       <div>
         <h1>
           <span class="what">What</span>

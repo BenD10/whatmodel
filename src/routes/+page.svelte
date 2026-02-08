@@ -1,27 +1,9 @@
 <script>
-  import { onMount } from 'svelte';
   import { browser } from '$app/environment';
   import { replaceState } from '$app/navigation';
   import gpus from '$lib/data/gpus.json';
   import GpuInput from '$lib/components/GpuInput.svelte';
   import ModelResults from '$lib/components/ModelResults.svelte';
-
-  let vram = $state(null);
-  let bandwidth = $state(null);
-  let minContextK = $state(null);
-  let minTokPerSec = $state(null);
-  let requiredFeatures = $state([]);
-  let agenticCoding = $state(false);
-
-  // Read initial values from URL query params (client-side only)
-  let initialGpuId = $state('');
-  let initialMemIdx = $state('');
-  let initialManualVram = $state('');
-  let initialContextK = $state('');
-  let initialSpeed = $state('');
-  let initialFeatures = $state([]);
-  let initialAgentic = $state(false);
-  let ready = $state(false);
 
   /** Validate and sanitize URL query parameters */
   function parseUrlParams(params) {
@@ -88,18 +70,46 @@
     return { gpuId, memIdx, manualVram, contextK, speed, features, agentic };
   }
 
-  onMount(() => {
-    const params = new URL(window.location.href).searchParams;
-    const validated = parseUrlParams(params);
-    initialGpuId = validated.gpuId;
-    initialMemIdx = validated.memIdx;
-    initialManualVram = validated.manualVram;
-    initialContextK = validated.contextK;
-    initialSpeed = validated.speed;
-    initialFeatures = validated.features;
-    initialAgentic = validated.agentic;
-    ready = true;
-  });
+  /** Derive initial vram/bandwidth from parsed URL params so results render immediately */
+  function computeInitialHardware(p) {
+    if (p.gpuId) {
+      const gpu = gpus.find((g) => g.id === p.gpuId);
+      if (gpu?.vram_options && p.memIdx !== '') {
+        const opt = gpu.vram_options[Number(p.memIdx)];
+        if (opt) return { vram: opt.vram_gb, bandwidth: opt.bandwidth_gbps };
+      } else if (gpu) {
+        return { vram: gpu.vram_gb, bandwidth: gpu.bandwidth_gbps };
+      }
+    } else if (p.manualVram) {
+      const val = parseFloat(p.manualVram);
+      if (!Number.isNaN(val) && val > 0) return { vram: val, bandwidth: null };
+    }
+    return { vram: null, bandwidth: null };
+  }
+
+  // Parse URL params synchronously on the client to avoid layout shift.
+  // During SSR (static build) browser is false so we get safe defaults.
+  const urlParams = browser
+    ? parseUrlParams(new URL(window.location.href).searchParams)
+    : { gpuId: '', memIdx: '', manualVram: '', contextK: '', speed: '', features: [], agentic: false };
+
+  const initialHw = computeInitialHardware(urlParams);
+
+  let vram = $state(initialHw.vram);
+  let bandwidth = $state(initialHw.bandwidth);
+  let minContextK = $state(urlParams.contextK !== '' ? Number(urlParams.contextK) : null);
+  let minTokPerSec = $state(urlParams.speed !== '' ? Number(urlParams.speed) : null);
+  let requiredFeatures = $state(urlParams.features.length > 0 ? [...urlParams.features] : []);
+  let agenticCoding = $state(urlParams.agentic);
+
+  // Initial values passed to GpuInput (constant after parse, no need for $state)
+  const initialGpuId = urlParams.gpuId;
+  const initialMemIdx = urlParams.memIdx;
+  const initialManualVram = urlParams.manualVram;
+  const initialContextK = urlParams.contextK;
+  const initialSpeed = urlParams.speed;
+  const initialFeatures = urlParams.features;
+  const initialAgentic = urlParams.agentic;
 
   function onStateChange(state) {
     if (!browser) return;
@@ -156,7 +166,6 @@
 </svelte:head>
 
 <div class="page">
-  {#key ready}
   <GpuInput
     bind:vram
     bind:bandwidth
@@ -173,7 +182,6 @@
     {initialAgentic}
     onstatechange={onStateChange}
   />
-  {/key}
 
   <section class="results-section">
     <h2>Results</h2>
