@@ -27,8 +27,12 @@
       {#if minTokPerSec != null} at <strong>{minTokPerSec}+ tok/s</strong>{/if}
       — sorted by quality
     </p>
-    <p class="mmlu-note" title={mmluExplainer}>
-      Ranked by <strong>MMLU</strong> benchmark <span class="info-icon">?</span>
+    <p class="mmlu-note">
+      Ranked by <strong>MMLU</strong> benchmark
+      <span class="tooltip-wrap" tabindex="0" role="button" aria-label="What is MMLU?">
+        <span class="info-icon">?</span>
+        <span class="tooltip">{mmluExplainer}</span>
+      </span>
     </p>
 
     {#if results.fits.length > 0}
@@ -176,7 +180,6 @@
   .mmlu-note {
     font-size: 0.8rem;
     color: var(--text-muted);
-    cursor: help;
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
@@ -184,6 +187,13 @@
 
   .mmlu-note strong {
     color: var(--text);
+  }
+
+  .tooltip-wrap {
+    position: relative;
+    display: inline-flex;
+    cursor: help;
+    outline: none;
   }
 
   .info-icon {
@@ -198,6 +208,38 @@
     font-weight: 600;
     color: var(--text-muted);
     flex-shrink: 0;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .tooltip-wrap:hover .info-icon,
+  .tooltip-wrap:focus .info-icon {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 0.5rem);
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: 280px;
+    padding: 0.55rem 0.75rem;
+    background: var(--surface, #1e1e2e);
+    border: 1px solid var(--border, #333);
+    border-radius: 6px;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--text, #e0e0e0);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+    pointer-events: none;
+  }
+
+  .tooltip-wrap:hover .tooltip,
+  .tooltip-wrap:focus .tooltip {
+    display: block;
   }
 
   /* Groups */
