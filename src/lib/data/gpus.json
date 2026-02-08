@@ -96,6 +96,8 @@
   { "id": "rx-5700",           "name": "Radeon RX 5700",            "manufacturer": "AMD",    "vram_gb": 8,  "bandwidth_gbps": 448 },
   { "id": "rx-5600-xt",        "name": "Radeon RX 5600 XT",        "manufacturer": "AMD",    "vram_gb": 6,  "bandwidth_gbps": 288 },
 
+  { "id": "ryzen-ai-max",      "name": "Ryzen AI Max (Strix Halo)", "manufacturer": "AMD",    "vram_options": [{ "vram_gb": 32, "bandwidth_gbps": 256 }, { "vram_gb": 64, "bandwidth_gbps": 256 }, { "vram_gb": 96, "bandwidth_gbps": 256 }, { "vram_gb": 128, "bandwidth_gbps": 256 }] },
+
   { "id": "arc-b580",          "name": "Arc B580",                  "manufacturer": "Intel",  "vram_gb": 12, "bandwidth_gbps": 456 },
   { "id": "arc-b570",          "name": "Arc B570",                  "manufacturer": "Intel",  "vram_gb": 10, "bandwidth_gbps": 380 },
   { "id": "arc-a770",          "name": "Arc A770",                  "manufacturer": "Intel",  "vram_gb": 16, "bandwidth_gbps": 560 },

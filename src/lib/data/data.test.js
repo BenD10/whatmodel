@@ -183,8 +183,8 @@ describe('gpus.json', () => {
       expect(VALID_MANUFACTURERS).toContain(gpu.manufacturer);
     });
 
-    if (gpu.manufacturer === 'Apple') {
-      it('has vram_options array (Apple Silicon)', () => {
+    if (gpu.vram_options) {
+      it('has vram_options array (unified memory GPU)', () => {
         expect(Array.isArray(gpu.vram_options)).toBe(true);
         expect(gpu.vram_options.length).toBeGreaterThan(0);
       });
