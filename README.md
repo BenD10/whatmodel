@@ -198,7 +198,7 @@ Apple Silicon chips use `vram_options` instead — an array of memory configurat
   "weight_gb": 4.92,
   "kv_per_1k_gb": 0.122,
   "max_context_k": 128,
-  "notes": "32 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
+  "notes": "32 layers, 8 KV heads, head_dim 128. GGUF Q4_K_M file size."
 }
 ```
 
@@ -217,7 +217,7 @@ Apple Silicon chips use `vram_options` instead — an array of memory configurat
 
 ## Data sources
 
-- **Weight sizes**: Actual GGUF file sizes from [bartowski's HuggingFace repos](https://huggingface.co/bartowski)
+- **Weight sizes**: Actual GGUF file sizes from HuggingFace (deterministic per model architecture and quantization format)
 - **KV cache**: Calculated from model `config.json` architecture parameters (layers, KV heads, head_dim)
 - **GPU VRAM**: Official manufacturer specifications
 - **GPU bandwidth**: Official specs, Wikipedia GeForce/Radeon series articles, NVIDIA datasheets, AMD reference docs
@@ -234,7 +234,7 @@ Add an entry to `src/lib/data/gpus.json`. Keep entries grouped by manufacturer, 
 
 Add entries to `src/lib/data/models.json`. For each model, you need:
 
-1. **Weight size** — use the actual GGUF file size from HuggingFace for each quantization level
+1. **Weight size** — use the actual GGUF file size for each quantization level (any HuggingFace GGUF repo will give the same size for a given model + quant)
 2. **KV cache per 1K tokens** — calculate from the model architecture:
    ```
    kv_per_1k_gb = 2 × layers × kv_heads × head_dim × 2 × 1000 / (1024³)

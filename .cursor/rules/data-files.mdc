@@ -48,15 +48,17 @@ Each entry represents one model at one quantization level:
   "kv_per_1k_gb": 0.122,
   "max_context_k": 128,
   "mmlu_score": 69.4,
-  "notes": "32 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
+  "features": ["tool_use"],
+  "notes": "32 layers, 8 KV heads, head_dim 128. GGUF Q4_K_M file size."
 }
 ```
 
 Required fields:
-- `weight_gb`: actual GGUF file size from HuggingFace (bartowski repos)
+- `weight_gb`: actual GGUF file size (deterministic per model architecture and quantization format)
 - `kv_per_1k_gb`: `2 × layers × kv_heads × head_dim × 2 × 1000 / (1024³)` (fp16 KV cache)
 - `max_context_k`: from model card (e.g. 128 for 128K context)
 - `mmlu_score`: MMLU benchmark score (used for sorting and quality tier badges)
+- `features`: array of supported feature strings — `"vision"`, `"reasoning"`, `"tool_use"`. Use `[]` if the model has none. All quant variants of a model share the same features.
 - `notes`: include architecture details (layers, KV heads, head_dim) and weight source
 
 Models are grouped by family, with multiple quantization variants per model (typically Q4_K_M, Q8_0, fp16).
