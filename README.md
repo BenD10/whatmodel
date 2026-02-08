@@ -244,6 +244,12 @@ Add entries to `src/lib/data/models.json`. For each model, you need:
 
 ---
 
+## Credits
+
+- **[bartowski](https://huggingface.co/bartowski)** — GGUF quantizations on HuggingFace used as the reference source for model weight sizes
+
+---
+
 ## Development
 
 ```bash
