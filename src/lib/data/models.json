@@ -161,6 +161,60 @@
   },
 
   {
+    "id": "llama-4-scout-q8",
+    "name": "Llama 4 Scout",
+    "params_b": 109,
+    "quantization": "Q8_0",
+    "weight_gb": 115,
+    "kv_per_1k_gb": 0.183,
+    "max_context_k": 128,
+    "mmlu_score": 79.6,
+    "swe_bench_score": null,
+    "features": ["vision", "tool_use"],
+    "notes": "MoE: 109B total, 17B active (16 experts). 48 layers, 8 KV heads, head_dim 128, hybrid attention (12 global + 36 local, chunk=8192). GGUF Q8_0 file size."
+  },
+  {
+    "id": "llama-4-scout-q4",
+    "name": "Llama 4 Scout",
+    "params_b": 109,
+    "quantization": "Q4_K_M",
+    "weight_gb": 65.4,
+    "kv_per_1k_gb": 0.183,
+    "max_context_k": 128,
+    "mmlu_score": 79.6,
+    "swe_bench_score": null,
+    "features": ["vision", "tool_use"],
+    "notes": "MoE: 109B total, 17B active (16 experts). 48 layers, 8 KV heads, head_dim 128, hybrid attention (12 global + 36 local, chunk=8192). GGUF Q4_K_M file size."
+  },
+
+  {
+    "id": "llama-4-maverick-q8",
+    "name": "Llama 4 Maverick",
+    "params_b": 400,
+    "quantization": "Q8_0",
+    "weight_gb": 426,
+    "kv_per_1k_gb": 0.183,
+    "max_context_k": 128,
+    "mmlu_score": 85.5,
+    "swe_bench_score": null,
+    "features": ["vision", "tool_use"],
+    "notes": "MoE: 400B total, 17B active (128 experts). 48 layers, 8 KV heads, head_dim 128. GGUF Q8_0 file size."
+  },
+  {
+    "id": "llama-4-maverick-q4",
+    "name": "Llama 4 Maverick",
+    "params_b": 400,
+    "quantization": "Q4_K_M",
+    "weight_gb": 243,
+    "kv_per_1k_gb": 0.183,
+    "max_context_k": 128,
+    "mmlu_score": 85.5,
+    "swe_bench_score": null,
+    "features": ["vision", "tool_use"],
+    "notes": "MoE: 400B total, 17B active (128 experts). 48 layers, 8 KV heads, head_dim 128. GGUF Q4_K_M file size."
+  },
+
+  {
     "id": "qwen-2.5-3b-q8",
     "name": "Qwen 2.5 3B",
     "params_b": 3.09,

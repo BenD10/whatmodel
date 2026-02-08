@@ -46,9 +46,9 @@ describe('models.json', () => {
       expect(model.params_b).toBeGreaterThan(0);
     });
 
-    it('has weight_gb between 0.1 and 200', () => {
+    it('has weight_gb between 0.1 and 500', () => {
       expect(model.weight_gb).toBeGreaterThanOrEqual(0.1);
-      expect(model.weight_gb).toBeLessThanOrEqual(200);
+      expect(model.weight_gb).toBeLessThanOrEqual(500);
     });
 
     it('has kv_per_1k_gb between 0 and 2', () => {
