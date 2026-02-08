@@ -63,6 +63,8 @@
   { "id": "rtx-a6000",         "name": "RTX A6000",                 "manufacturer": "NVIDIA", "vram_gb": 48, "bandwidth_gbps": 768 },
   { "id": "rtx-a5000",         "name": "RTX A5000",                 "manufacturer": "NVIDIA", "vram_gb": 24, "bandwidth_gbps": 768 },
   { "id": "rtx-a4000",         "name": "RTX A4000",                 "manufacturer": "NVIDIA", "vram_gb": 16, "bandwidth_gbps": 448 },
+  { "id": "rtx-a2000-12gb",   "name": "RTX A2000 12GB",            "manufacturer": "NVIDIA", "vram_gb": 12, "bandwidth_gbps": 288 },
+  { "id": "rtx-a2000",        "name": "RTX A2000",                 "manufacturer": "NVIDIA", "vram_gb": 6,  "bandwidth_gbps": 288 },
 
   { "id": "t1000-8gb",         "name": "T1000 8GB",                 "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 160 },
   { "id": "t1000",             "name": "T1000",                     "manufacturer": "NVIDIA", "vram_gb": 4,  "bandwidth_gbps": 160 },
