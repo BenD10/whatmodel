@@ -1,0 +1,40 @@
+---
+description: Calculation logic and testing conventions
+globs: src/lib/calculations.*
+alwaysApply: false
+---
+
+# Calculations and Testing
+
+## calculations.js — Pure Functions
+
+All business logic lives in `src/lib/calculations.js` as pure, side-effect-free functions. This separation is intentional — keep it that way.
+
+Key functions:
+- `calcMaxContext(model, userVram)` — max context (K tokens) that fits in VRAM
+- `calcTokPerSec(model, bandwidth)` — estimated decode tokens/sec
+- `bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec)` — sorts models into fits/tight/noFit
+- `qualityTier(score)` — MMLU score → { label, cls } tier
+- `contextLabel(k)`, `tokLabel(tps)` — display formatting
+
+## Core Formulas
+
+```
+max_context_k = floor((vram - weight_gb) / kv_per_1k_gb)   [capped at model max]
+tok/s = round(bandwidth / (weight_gb + 1.0))                [1.0 GB overhead constant]
+```
+
+- `INFERENCE_OVERHEAD_GB = 1.0` — empirically calibrated, do not change without benchmarks
+- `TIGHT_FIT_CONTEXT_K = 4` — models below 4K context are always "tight fit"
+
+## Testing
+
+Tests are in `src/lib/calculations.test.js` using Vitest. Run with `npm test`.
+
+When modifying calculation functions:
+1. Update or add tests for any changed behavior
+2. Use the existing fixture pattern (`smallModel`, `mediumModel`, `largeModel`)
+3. Include edge cases (zero VRAM, null bandwidth, empty model list)
+4. Add a comment showing the math: `// 24 GB VRAM, 8.99 GB weights → 15.01 / 0.25 = 60K`
+
+Do not put calculation logic in Svelte components — extract it to `calculations.js` and test it.

@@ -1,0 +1,64 @@
+---
+description: Svelte 5 component conventions used in this project
+globs: "**/*.svelte"
+alwaysApply: false
+---
+
+# Svelte Component Patterns
+
+## Svelte 5 Runes (required)
+
+This project uses Svelte 5 exclusively. Never use legacy Svelte 4 syntax.
+
+```js
+// Props with bindable values and defaults
+let { vram = $bindable(null), minContextK = $bindable(null) } = $props();
+
+// Local reactive state
+let query = $state('');
+
+// Derived values (simple)
+let selectedGpu = $derived(gpus.find((g) => g.id === selectedGpuId) ?? null);
+
+// Derived values (complex)
+let results = $derived.by(() => {
+  if (vram == null) return null;
+  return bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec);
+});
+```
+
+## Event Handling
+
+Use lowercase `on` prefix directly on elements — not `on:event` (Svelte 4 syntax):
+
+```svelte
+<!-- ✅ Correct -->
+<input oninput={onManualInput} />
+<select onchange={onContextChange}>
+
+<!-- ❌ Wrong (Svelte 4) -->
+<input on:input={onManualInput} />
+```
+
+For component callbacks, pass functions as props (e.g. `onstatechange`, `onchange`).
+
+## Styling
+
+- Use scoped `<style>` blocks — no global class leakage
+- Reference CSS variables from `app.css` (e.g. `var(--surface)`, `var(--accent)`, `var(--border)`)
+- Mobile breakpoint at `600px` using `@media (max-width: 600px)`
+- Key variables: `--bg`, `--surface`, `--text`, `--text-muted`, `--accent`, `--border`, `--radius`, `--radius-sm`
+- Status colors: `--fits` (green), `--tight` (yellow), `--no-fit` (red) with matching `*-dim` and `*-border` variants
+
+## Layout Rendering
+
+Use `{@render children()}` for slot content (Svelte 5), not `<slot />`.
+
+## Static Asset References
+
+Use `{base}` from `$app/paths` when referencing assets in `static/`:
+
+```svelte
+import { base } from '$app/paths';
+<img src="{base}/logo.png" />
+```
