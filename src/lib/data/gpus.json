@@ -64,6 +64,12 @@
   { "id": "rtx-a5000",         "name": "RTX A5000",                 "manufacturer": "NVIDIA", "vram_gb": 24, "bandwidth_gbps": 768 },
   { "id": "rtx-a4000",         "name": "RTX A4000",                 "manufacturer": "NVIDIA", "vram_gb": 16, "bandwidth_gbps": 448 },
 
+  { "id": "t1000-8gb",         "name": "T1000 8GB",                 "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 160 },
+  { "id": "t1000",             "name": "T1000",                     "manufacturer": "NVIDIA", "vram_gb": 4,  "bandwidth_gbps": 160 },
+  { "id": "t600",              "name": "T600",                      "manufacturer": "NVIDIA", "vram_gb": 4,  "bandwidth_gbps": 160 },
+  { "id": "t400-4gb",          "name": "T400 4GB",                  "manufacturer": "NVIDIA", "vram_gb": 4,  "bandwidth_gbps": 80 },
+  { "id": "t400",              "name": "T400",                      "manufacturer": "NVIDIA", "vram_gb": 2,  "bandwidth_gbps": 80 },
+
   { "id": "l40s",              "name": "L40S",                      "manufacturer": "NVIDIA", "vram_gb": 48, "bandwidth_gbps": 864 },
   { "id": "tesla-p40",         "name": "Tesla P40",                 "manufacturer": "NVIDIA", "vram_gb": 24, "bandwidth_gbps": 346 },
 
