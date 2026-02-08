@@ -92,7 +92,14 @@
       fireStateChange();
       return;
     }
-    const opt = selectedGpu.vram_options[Number(selectedMemoryIdx)];
+    const idx = Number(selectedMemoryIdx);
+    const opt = selectedGpu.vram_options[idx];
+    if (!opt) {
+      vram = null;
+      bandwidth = null;
+      fireStateChange();
+      return;
+    }
     vram = opt.vram_gb;
     bandwidth = opt.bandwidth_gbps;
     trackGpuSelected(selectedGpu.name, opt.vram_gb, opt.bandwidth_gbps);
