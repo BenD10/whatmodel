@@ -19,6 +19,13 @@ export const INFERENCE_OVERHEAD_GB = 1.0;
 export const TIGHT_FIT_CONTEXT_K = 4;
 
 /**
+ * Minimum context (in K tokens) enforced when agentic coding mode is active.
+ * Agentic coding tools (Roo Code, Cline, etc.) need large context windows
+ * to send file contents, tool results, and conversation history.
+ */
+export const AGENTIC_MIN_CONTEXT_K = 64;
+
+/**
  * For a given model and user VRAM, calculate the max context (in K tokens)
  * that fits. Capped at the model's trained max_context_k.
  *
@@ -84,10 +91,45 @@ export function qualityTier(score) {
 }
 
 /**
+ * Quality tier based on SWE-bench Verified score (% resolved).
+ * SWE-bench ranges ~0–50% for local models, so thresholds are different from MMLU.
+ * @param {number|null} score  SWE-bench score (null if unavailable)
+ * @returns {{ label: string, cls: string }}
+ */
+export function codingQualityTier(score) {
+  if (score == null) return { label: 'N/A', cls: 'tier-na' };
+  if (score >= 30) return { label: 'Excellent', cls: 'tier-excellent' };
+  if (score >= 22) return { label: 'Great', cls: 'tier-great' };
+  if (score >= 15) return { label: 'Good', cls: 'tier-good' };
+  if (score >= 8) return { label: 'Fair', cls: 'tier-fair' };
+  return { label: 'Basic', cls: 'tier-basic' };
+}
+
+/**
+ * Compare function for sorting by a score field (descending).
+ * Null scores always sort to the bottom.
+ * @param {number|null} a
+ * @param {number|null} b
+ * @returns {number}
+ */
+function compareScores(a, b) {
+  if (a == null && b == null) return 0;
+  if (a == null) return 1;
+  if (b == null) return -1;
+  return b - a;
+}
+
+/**
  * Bucket a list of models into "fits", "tight", and "noFit" categories
  * based on available VRAM and optional minimum-context / minimum-speed /
  * required-features filters.
  * Results are sorted by MMLU score (descending), with context/weight as tiebreakers.
+ *
+ * When agenticCoding is true:
+ * - Minimum context is raised to at least 64K (AGENTIC_MIN_CONTEXT_K)
+ * - Models are sorted by swe_bench_score instead of mmlu_score
+ * - Quality tier uses codingQualityTier() thresholds
+ * - Models without swe_bench_score sort to the bottom
  *
  * @param {Array} allModels       Full list of model objects
  * @param {number} vram           Available VRAM in GB
@@ -95,21 +137,29 @@ export function qualityTier(score) {
  * @param {number|null} minContextK  Minimum required context in K tokens (null = any)
  * @param {number|null} minTokPerSec Minimum required tok/s (null = any)
  * @param {string[]} requiredFeatures  Features the model must support (empty = any)
+ * @param {boolean} agenticCoding  Enable agentic coding mode (default false)
  * @returns {{ fits: Array, tight: Array, noFit: Array }}
  */
-export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec, requiredFeatures = []) {
+export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec, requiredFeatures = [], agenticCoding = false) {
+  // In agentic mode, enforce a minimum 64K context
+  const effectiveMinCtx = agenticCoding
+    ? Math.max(minContextK ?? 0, AGENTIC_MIN_CONTEXT_K)
+    : minContextK;
+
   const entries = allModels.map((m) => {
     const maxCtxK = calcMaxContext(m, vram);
     const totalAtMinCtx = m.weight_gb + m.kv_per_1k_gb; // 1K min context
     const fitsAtAll = vram >= totalAtMinCtx;
-    const meetsMinCtx = minContextK != null ? maxCtxK >= minContextK : true;
+    const meetsMinCtx = effectiveMinCtx != null ? maxCtxK >= effectiveMinCtx : true;
     const tokPerSec = calcTokPerSec(m, bandwidth);
     const meetsMinSpeed = minTokPerSec != null && tokPerSec != null ? tokPerSec >= minTokPerSec : true;
     const modelFeatures = m.features ?? [];
     const meetsFeatures = requiredFeatures.length > 0
       ? requiredFeatures.every((f) => modelFeatures.includes(f))
       : true;
-    const tier = qualityTier(m.mmlu_score);
+    const tier = agenticCoding
+      ? codingQualityTier(m.swe_bench_score ?? null)
+      : qualityTier(m.mmlu_score);
     return { ...m, maxCtxK, fitsAtAll, meetsMinCtx, meetsMinSpeed, meetsFeatures, tokPerSec, tier };
   });
 
@@ -130,10 +180,18 @@ export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerS
     }
   }
 
-  // Sort by quality (MMLU) descending, then by context/weight as tiebreaker
-  fits.sort((a, b) => b.mmlu_score - a.mmlu_score || b.maxCtxK - a.maxCtxK);
-  tight.sort((a, b) => b.mmlu_score - a.mmlu_score || b.maxCtxK - a.maxCtxK);
-  noFit.sort((a, b) => b.mmlu_score - a.mmlu_score || b.weight_gb - a.weight_gb);
+  if (agenticCoding) {
+    // Sort by SWE-bench score (descending), null scores to bottom, context as tiebreaker
+    const sortFn = (a, b) => compareScores(a.swe_bench_score, b.swe_bench_score) || b.maxCtxK - a.maxCtxK;
+    fits.sort(sortFn);
+    tight.sort(sortFn);
+    noFit.sort((a, b) => compareScores(a.swe_bench_score, b.swe_bench_score) || b.weight_gb - a.weight_gb);
+  } else {
+    // Sort by quality (MMLU) descending, then by context/weight as tiebreaker
+    fits.sort((a, b) => b.mmlu_score - a.mmlu_score || b.maxCtxK - a.maxCtxK);
+    tight.sort((a, b) => b.mmlu_score - a.mmlu_score || b.maxCtxK - a.maxCtxK);
+    noFit.sort((a, b) => b.mmlu_score - a.mmlu_score || b.weight_gb - a.weight_gb);
+  }
 
   return { fits, tight, noFit };
 }

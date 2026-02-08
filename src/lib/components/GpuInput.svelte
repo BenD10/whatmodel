@@ -46,12 +46,14 @@
     minContextK = $bindable(null),
     minTokPerSec = $bindable(null),
     requiredFeatures = $bindable([]),
+    agenticCoding = $bindable(false),
     initialGpuId = '',
     initialMemIdx = '',
     initialManualVram = '',
     initialContextK = '',
     initialSpeed = '',
     initialFeatures = [],
+    initialAgentic = false,
     onstatechange = () => {},
   } = $props();
 
@@ -61,6 +63,7 @@
   let speedSelection = $state(initialSpeed !== '' ? Number(initialSpeed) : '');
   let selectedMemoryIdx = $state(initialMemIdx !== '' ? Number(initialMemIdx) : '');
   let featureSelection = $state(initialFeatures.length > 0 ? [...initialFeatures] : []);
+  let agenticSelection = $state(initialAgentic);
 
   // Derived: does the selected GPU have configurable memory?
   let selectedGpu = $derived(gpus.find((g) => g.id === selectedGpuId) ?? null);
@@ -74,6 +77,7 @@
       contextK: contextSelection,
       speed: speedSelection,
       features: featureSelection,
+      agentic: agenticSelection,
     });
   }
 
@@ -146,6 +150,12 @@
     fireStateChange();
   }
 
+  function onAgenticChange() {
+    agenticCoding = agenticSelection;
+    trackFilterChanged('agentic_coding', agenticSelection);
+    fireStateChange();
+  }
+
   // Apply initial values on mount (from URL query params)
   onMount(() => {
     if (initialGpuId) {
@@ -180,6 +190,9 @@
     }
     if (initialFeatures.length > 0) {
       requiredFeatures = [...initialFeatures];
+    }
+    if (initialAgentic) {
+      agenticCoding = true;
     }
   });
 </script>
@@ -254,11 +267,19 @@
         onchange={onFeaturesChange}
       />
     </div>
+
+    <div class="field agentic-field">
+      <label class="checkbox-label">
+        <input type="checkbox" bind:checked={agenticSelection} onchange={onAgenticChange} />
+        <span class="checkbox-text">Agentic coding</span>
+      </label>
+      <span class="filter-hint">For Roo Code, Cline, etc.</span>
+    </div>
   </div>
 
   <div class="effective">
     {#if vram != null}
-      Using <strong>{vram} GB</strong> VRAM{#if minContextK != null}, need at least <strong>{minContextK}K</strong> context{/if}{#if minTokPerSec != null}, need at least <strong>{minTokPerSec} tok/s</strong>{/if}
+      Using <strong>{vram} GB</strong> VRAM{#if agenticSelection}, <strong>agentic coding</strong> mode (64K+ context, ranked by SWE-bench){/if}{#if minContextK != null && !agenticSelection}, need at least <strong>{minContextK}K</strong> context{/if}{#if minTokPerSec != null}, need at least <strong>{minTokPerSec} tok/s</strong>{/if}
     {:else}
       <span class="muted">Pick a GPU or enter VRAM to get started</span>
     {/if}
@@ -349,6 +370,37 @@
   }
 
   .muted {
+    color: var(--text-muted);
+  }
+
+  .agentic-field {
+    justify-content: flex-end;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    text-transform: none;
+    font-size: 0.9rem;
+    color: var(--text);
+    letter-spacing: normal;
+  }
+
+  .checkbox-label input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  .checkbox-text {
+    font-weight: 500;
+  }
+
+  .filter-hint {
+    font-size: 0.72rem;
     color: var(--text-muted);
   }
 

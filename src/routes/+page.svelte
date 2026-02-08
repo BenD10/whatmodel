@@ -11,6 +11,7 @@
   let minContextK = $state(null);
   let minTokPerSec = $state(null);
   let requiredFeatures = $state([]);
+  let agenticCoding = $state(false);
 
   // Read initial values from URL query params (client-side only)
   let initialGpuId = $state('');
@@ -19,6 +20,7 @@
   let initialContextK = $state('');
   let initialSpeed = $state('');
   let initialFeatures = $state([]);
+  let initialAgentic = $state(false);
   let ready = $state(false);
 
   /** Validate and sanitize URL query parameters */
@@ -80,7 +82,10 @@
       features = rawFeat.split(',').filter((f) => validFeatures.includes(f));
     }
 
-    return { gpuId, memIdx, manualVram, contextK, speed, features };
+    // Validate agentic coding flag — must be "1"
+    const agentic = params.get('agentic') === '1';
+
+    return { gpuId, memIdx, manualVram, contextK, speed, features, agentic };
   }
 
   onMount(() => {
@@ -92,6 +97,7 @@
     initialContextK = validated.contextK;
     initialSpeed = validated.speed;
     initialFeatures = validated.features;
+    initialAgentic = validated.agentic;
     ready = true;
   });
 
@@ -104,6 +110,7 @@
     url.searchParams.delete('ctx');
     url.searchParams.delete('speed');
     url.searchParams.delete('feat');
+    url.searchParams.delete('agentic');
 
     if (state.gpuId) url.searchParams.set('gpu', state.gpuId);
     if (state.memIdx !== '') url.searchParams.set('mem', state.memIdx);
@@ -111,6 +118,7 @@
     if (state.contextK !== '') url.searchParams.set('ctx', state.contextK);
     if (state.speed !== '') url.searchParams.set('speed', state.speed);
     if (state.features?.length > 0) url.searchParams.set('feat', state.features.join(','));
+    if (state.agentic) url.searchParams.set('agentic', '1');
 
     replaceState(url, {});
   }
@@ -155,19 +163,21 @@
     bind:minContextK
     bind:minTokPerSec
     bind:requiredFeatures
+    bind:agenticCoding
     {initialGpuId}
     {initialMemIdx}
     {initialManualVram}
     {initialContextK}
     {initialSpeed}
     {initialFeatures}
+    {initialAgentic}
     onstatechange={onStateChange}
   />
   {/key}
 
   <section class="results-section">
     <h2>Results</h2>
-    <ModelResults {vram} {bandwidth} {minContextK} {minTokPerSec} {requiredFeatures} />
+    <ModelResults {vram} {bandwidth} {minContextK} {minTokPerSec} {requiredFeatures} {agenticCoding} />
   </section>
 </div>
 

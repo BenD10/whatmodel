@@ -2,18 +2,22 @@
   import allModels from '$lib/data/models.json';
   import { contextLabel, tokLabel, bucketModels } from '$lib/calculations.js';
 
-  let { vram, bandwidth = null, minContextK = null, minTokPerSec = null, requiredFeatures = [] } = $props();
+  let { vram, bandwidth = null, minContextK = null, minTokPerSec = null, requiredFeatures = [], agenticCoding = false } = $props();
 
   const FEATURE_LABELS = { vision: 'Vision', reasoning: 'Reasoning', tool_use: 'Tool use' };
 
   let results = $derived.by(() => {
     if (vram == null) return null;
-    return bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec, requiredFeatures);
+    return bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec, requiredFeatures, agenticCoding);
   });
 
   let totalFit = $derived(results ? results.fits.length + results.tight.length : 0);
 
   const mmluExplainer = 'MMLU (Massive Multitask Language Understanding) measures general knowledge across 57 subjects. Higher = more capable. Sorted best-first.';
+  const sweBenchExplainer = 'SWE-bench Verified measures a model\'s ability to resolve real-world GitHub issues. Higher = better at coding tasks. Sorted best-first.';
+
+  let benchmarkName = $derived(agenticCoding ? 'SWE-bench' : 'MMLU');
+  let benchmarkExplainer = $derived(agenticCoding ? sweBenchExplainer : mmluExplainer);
 
   let copyState = $state('idle'); // 'idle' | 'copied' | 'error'
   let copyTimeout;
@@ -45,10 +49,10 @@
     </p>
     <div class="results-meta">
       <p class="mmlu-note">
-        Ranked by <strong>MMLU</strong> benchmark
-        <span class="tooltip-wrap" tabindex="0" role="button" aria-label="What is MMLU?">
+        Ranked by <strong>{benchmarkName}</strong> benchmark
+        <span class="tooltip-wrap" tabindex="0" role="button" aria-label="What is {benchmarkName}?">
           <span class="info-icon">?</span>
-          <span class="tooltip">{mmluExplainer}</span>
+          <span class="tooltip">{benchmarkExplainer}</span>
         </span>
       </p>
       <button class="copy-btn" onclick={copyLink} aria-label="Copy link to clipboard">
@@ -82,8 +86,8 @@
                 </div>
                 <div class="model-stats">
                   <span class="stat quality-stat">
-                    <span class="stat-label">MMLU</span>
-                    <span class="stat-value">{m.mmlu_score}</span>
+                    <span class="stat-label">{benchmarkName}</span>
+                    <span class="stat-value">{agenticCoding ? (m.swe_bench_score != null ? m.swe_bench_score : 'N/A') : m.mmlu_score}</span>
                   </span>
                   <span class="stat context">
                     <span class="stat-label">Max context</span>
@@ -122,8 +126,8 @@
                 </div>
                 <div class="model-stats">
                   <span class="stat quality-stat">
-                    <span class="stat-label">MMLU</span>
-                    <span class="stat-value">{m.mmlu_score}</span>
+                    <span class="stat-label">{benchmarkName}</span>
+                    <span class="stat-value">{agenticCoding ? (m.swe_bench_score != null ? m.swe_bench_score : 'N/A') : m.mmlu_score}</span>
                   </span>
                   <span class="stat context">
                     <span class="stat-label">Max context</span>
@@ -173,8 +177,8 @@
                 </div>
                 <div class="model-stats">
                   <span class="stat quality-stat">
-                    <span class="stat-label">MMLU</span>
-                    <span class="stat-value">{m.mmlu_score}</span>
+                    <span class="stat-label">{benchmarkName}</span>
+                    <span class="stat-value">{agenticCoding ? (m.swe_bench_score != null ? m.swe_bench_score : 'N/A') : m.mmlu_score}</span>
                   </span>
                   <span class="stat context">
                     <span class="stat-label">Need</span>
@@ -469,6 +473,12 @@
   .badge.quality.tier-basic {
     background: rgba(255, 255, 255, 0.06);
     color: var(--text-muted);
+  }
+
+  .badge.quality.tier-na {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-muted);
+    font-style: italic;
   }
 
   /* Feature badges */

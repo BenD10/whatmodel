@@ -5,9 +5,11 @@ import {
   contextLabel,
   tokLabel,
   qualityTier,
+  codingQualityTier,
   bucketModels,
   INFERENCE_OVERHEAD_GB,
   TIGHT_FIT_CONTEXT_K,
+  AGENTIC_MIN_CONTEXT_K,
 } from './calculations.js';
 
 // ---------------------------------------------------------------------------
@@ -24,6 +26,7 @@ const smallModel = {
   kv_per_1k_gb: 0.031,
   max_context_k: 128,
   mmlu_score: 49.3,
+  swe_bench_score: null,
 };
 
 /** A medium model that needs ~9 GB for weights alone */
@@ -36,6 +39,7 @@ const mediumModel = {
   kv_per_1k_gb: 0.25,
   max_context_k: 128,
   mmlu_score: 79.9,
+  swe_bench_score: 22.6,
 };
 
 /** A large model that won't fit on consumer GPUs */
@@ -48,6 +52,7 @@ const largeModel = {
   kv_per_1k_gb: 1.25,
   max_context_k: 128,
   mmlu_score: 86.1,
+  swe_bench_score: 33.4,
 };
 
 /** A model with vision feature */
@@ -60,6 +65,7 @@ const visionModel = {
   kv_per_1k_gb: 0.466,
   max_context_k: 128,
   mmlu_score: 74.0,
+  swe_bench_score: 12.8,
   features: ['vision'],
 };
 
@@ -73,6 +79,7 @@ const reasoningModel = {
   kv_per_1k_gb: 0.183,
   max_context_k: 128,
   mmlu_score: 72.0,
+  swe_bench_score: 20.4,
   features: ['reasoning'],
 };
 
@@ -86,6 +93,7 @@ const multiFeatureModel = {
   kv_per_1k_gb: 0.153,
   max_context_k: 128,
   mmlu_score: 81.0,
+  swe_bench_score: 20.8,
   features: ['vision', 'tool_use'],
 };
 
@@ -358,5 +366,98 @@ describe('bucketModels', () => {
     const result = bucketModels([smallModel], 200, 1000, null, null, []);
     expect(result.fits).toHaveLength(1);
     expect(result.fits[0].meetsFeatures).toBe(true);
+  });
+
+  // Agentic coding mode tests
+
+  it('enforces 64K minimum context in agentic mode', () => {
+    // 24 GB VRAM, medium model: (24 - 8.99) / 0.25 = 60K context
+    // In agentic mode, 60K < 64K minimum → tight
+    const result = bucketModels([mediumModel], 24, 500, null, null, [], true);
+    expect(result.fits).toHaveLength(0);
+    expect(result.tight).toHaveLength(1);
+  });
+
+  it('allows models meeting 64K in agentic mode', () => {
+    // 26 GB VRAM, medium model: (26 - 8.99) / 0.25 = 68K context → passes 64K
+    const result = bucketModels([mediumModel], 26, 500, null, null, [], true);
+    expect(result.fits).toHaveLength(1);
+  });
+
+  it('uses max(userMinCtx, 64K) in agentic mode', () => {
+    // User sets minContextK = 128, agentic mode → effective min = 128K (higher than 64K)
+    // 26 GB VRAM, medium model: 68K context < 128K → tight
+    const result = bucketModels([mediumModel], 26, 500, 128, null, [], true);
+    expect(result.fits).toHaveLength(0);
+    expect(result.tight).toHaveLength(1);
+  });
+
+  it('sorts by swe_bench_score in agentic mode', () => {
+    // All models fit at 200 GB, should be sorted by swe_bench_score descending
+    const result = bucketModels([smallModel, mediumModel, largeModel], 200, 1000, null, null, [], true);
+    // largeModel: 33.4, mediumModel: 22.6, smallModel: null → null at bottom
+    expect(result.fits[0].id).toBe('test-large');
+    expect(result.fits[1].id).toBe('test-medium');
+    expect(result.fits[2].id).toBe('test-small'); // null score → bottom
+  });
+
+  it('puts null swe_bench_score models at bottom in agentic mode', () => {
+    const modelWithScore = { ...smallModel, id: 'has-score', swe_bench_score: 5.0, mmlu_score: 30 };
+    const modelWithoutScore = { ...smallModel, id: 'no-score', swe_bench_score: null, mmlu_score: 90 };
+    const result = bucketModels([modelWithoutScore, modelWithScore], 200, 1000, null, null, [], true);
+    // Despite lower MMLU, has-score should be above no-score in agentic mode
+    expect(result.fits[0].id).toBe('has-score');
+    expect(result.fits[1].id).toBe('no-score');
+  });
+
+  it('uses codingQualityTier in agentic mode', () => {
+    const result = bucketModels([mediumModel], 200, 1000, null, null, [], true);
+    // mediumModel has swe_bench_score = 22.6 → Great tier (>= 22)
+    expect(result.fits[0].tier).toEqual({ label: 'Great', cls: 'tier-great' });
+  });
+
+  it('uses qualityTier (MMLU) when not in agentic mode', () => {
+    const result = bucketModels([mediumModel], 200, 1000, null, null, [], false);
+    // mediumModel has mmlu_score = 79.9 → Great tier (>= 75)
+    expect(result.fits[0].tier).toEqual({ label: 'Great', cls: 'tier-great' });
+  });
+
+  it('uses AGENTIC_MIN_CONTEXT_K constant', () => {
+    expect(AGENTIC_MIN_CONTEXT_K).toBe(64);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// codingQualityTier
+// ---------------------------------------------------------------------------
+
+describe('codingQualityTier', () => {
+  it('returns N/A for null score', () => {
+    expect(codingQualityTier(null)).toEqual({ label: 'N/A', cls: 'tier-na' });
+  });
+
+  it('returns Excellent for score >= 30', () => {
+    expect(codingQualityTier(30)).toEqual({ label: 'Excellent', cls: 'tier-excellent' });
+    expect(codingQualityTier(45)).toEqual({ label: 'Excellent', cls: 'tier-excellent' });
+  });
+
+  it('returns Great for score 22–29', () => {
+    expect(codingQualityTier(22)).toEqual({ label: 'Great', cls: 'tier-great' });
+    expect(codingQualityTier(29.9)).toEqual({ label: 'Great', cls: 'tier-great' });
+  });
+
+  it('returns Good for score 15–21', () => {
+    expect(codingQualityTier(15)).toEqual({ label: 'Good', cls: 'tier-good' });
+    expect(codingQualityTier(21.9)).toEqual({ label: 'Good', cls: 'tier-good' });
+  });
+
+  it('returns Fair for score 8–14', () => {
+    expect(codingQualityTier(8)).toEqual({ label: 'Fair', cls: 'tier-fair' });
+    expect(codingQualityTier(14.9)).toEqual({ label: 'Fair', cls: 'tier-fair' });
+  });
+
+  it('returns Basic for score < 8', () => {
+    expect(codingQualityTier(7.9)).toEqual({ label: 'Basic', cls: 'tier-basic' });
+    expect(codingQualityTier(0)).toEqual({ label: 'Basic', cls: 'tier-basic' });
   });
 });
