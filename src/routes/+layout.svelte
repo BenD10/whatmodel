@@ -14,7 +14,7 @@
           <span class="what">What</span>
           <span class="model">Models</span><span class="question">?</span>
         </h1>
-        <p class="tagline">Find out which AI models your GPU can run.</p>
+        <p class="tagline">Pick the right model for your GPU — in seconds.</p>
       </div>
     </div>
   </header>

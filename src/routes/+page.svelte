@@ -9,7 +9,7 @@
 </script>
 
 <svelte:head>
-  <meta name="description" content="Find out which AI models your GPU can run based on VRAM." />
+  <meta name="description" content="Pick the right AI model for your GPU — in seconds. Check VRAM, bandwidth, and context size compatibility." />
 </svelte:head>
 
 <div class="page">
