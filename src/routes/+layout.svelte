@@ -26,7 +26,7 @@
   <footer>
     <p>
       Data last updated February 2026.
-      <a href="https://github.com/BenD10/whatmodels" target="_blank" rel="noopener">Source on GitHub</a> ·
+      <a href="https://github.com/BenD10/whatmodels" target="_blank" rel="noopener">&#9829; GitHub</a> ·
       <a href="https://github.com/BenD10/whatmodels/issues" target="_blank" rel="noopener">Report an issue</a>
     </p>
   </footer>
