@@ -383,7 +383,9 @@
   .model-info {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.5rem;
+    min-width: 0;
   }
 
   .model-name {
@@ -410,6 +412,8 @@
   .model-stats {
     display: flex;
     gap: 1rem;
+    margin-left: auto;
+    flex-shrink: 0;
   }
 
   .stat {
@@ -526,6 +530,7 @@
     .model-stats {
       width: 100%;
       justify-content: flex-start;
+      margin-left: 0;
     }
 
     .stat {
