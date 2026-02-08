@@ -26,9 +26,11 @@
   { "id": "rtx-3080",          "name": "GeForce RTX 3080",          "manufacturer": "NVIDIA", "vram_gb": 10, "bandwidth_gbps": 760 },
   { "id": "rtx-3070-ti",       "name": "GeForce RTX 3070 Ti",      "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 608 },
   { "id": "rtx-3070",          "name": "GeForce RTX 3070",          "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 448 },
+  { "id": "rtx-3060-ti-gddr6x","name": "GeForce RTX 3060 Ti GDDR6X","manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 608 },
   { "id": "rtx-3060-ti",       "name": "GeForce RTX 3060 Ti",      "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 448 },
   { "id": "rtx-3060",          "name": "GeForce RTX 3060",          "manufacturer": "NVIDIA", "vram_gb": 12, "bandwidth_gbps": 360 },
   { "id": "rtx-3050",          "name": "GeForce RTX 3050",          "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 224 },
+  { "id": "rtx-3050-6gb",      "name": "GeForce RTX 3050 6GB",     "manufacturer": "NVIDIA", "vram_gb": 6,  "bandwidth_gbps": 168 },
 
   { "id": "rtx-2080-ti",       "name": "GeForce RTX 2080 Ti",      "manufacturer": "NVIDIA", "vram_gb": 11, "bandwidth_gbps": 616 },
   { "id": "rtx-2080-super",    "name": "GeForce RTX 2080 SUPER",   "manufacturer": "NVIDIA", "vram_gb": 8,  "bandwidth_gbps": 496 },
@@ -108,7 +110,8 @@
 
   { "id": "arc-b580",          "name": "Arc B580",                  "manufacturer": "Intel",  "vram_gb": 12, "bandwidth_gbps": 456 },
   { "id": "arc-b570",          "name": "Arc B570",                  "manufacturer": "Intel",  "vram_gb": 10, "bandwidth_gbps": 380 },
-  { "id": "arc-a770",          "name": "Arc A770",                  "manufacturer": "Intel",  "vram_gb": 16, "bandwidth_gbps": 560 },
+  { "id": "arc-a770",          "name": "Arc A770 16GB",             "manufacturer": "Intel",  "vram_gb": 16, "bandwidth_gbps": 560 },
+  { "id": "arc-a770-8gb",      "name": "Arc A770 8GB",              "manufacturer": "Intel",  "vram_gb": 8,  "bandwidth_gbps": 512 },
   { "id": "arc-a750",          "name": "Arc A750",                  "manufacturer": "Intel",  "vram_gb": 8,  "bandwidth_gbps": 512 },
   { "id": "arc-a580",          "name": "Arc A580",                  "manufacturer": "Intel",  "vram_gb": 8,  "bandwidth_gbps": 512 },
 
