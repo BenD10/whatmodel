@@ -1,0 +1,32 @@
+---
+description: How to deploy changes live to whatmodelscanirun.com
+alwaysApply: false
+---
+
+# Deploying Changes
+
+This site is deployed automatically via GitHub Pages. Pushing to `main` triggers a build and deploy.
+
+## Steps
+
+1. **Make your changes** in the working tree.
+2. **Test locally** by running `npm run build` to ensure the static build succeeds. You can preview with `npm run preview`.
+3. **Commit** to the `main` branch with a descriptive message in imperative mood (e.g. "Add favicon", "Fix layout on mobile").
+4. **Push** to `origin/main`:
+   ```
+   git push origin main
+   ```
+5. **Verify deployment** — the GitHub Actions workflow (`.github/workflows/deploy.yml`) runs automatically:
+   - Checks out the repo
+   - Installs dependencies with `npm ci`
+   - Builds with `npm run build` (using `BASE_PATH` from GitHub Pages config)
+   - Uploads and deploys the `build/` directory to GitHub Pages
+6. **Check the result** at https://whatmodelscanirun.com
+
+## Key Details
+
+- **Adapter**: `@sveltejs/adapter-static` — outputs to `build/`.
+- **Static assets**: Place files in `static/` (e.g. `favicon.svg`, `CNAME`, images). They are copied as-is to the build output.
+- **CNAME**: `static/CNAME` maps the custom domain `whatmodelscanirun.com`.
+- **Base path**: Handled automatically by the deploy workflow via `BASE_PATH` env var. Use `{base}` prefix from `$app/paths` when referencing static assets in Svelte components.
+- **No PR required**: This project deploys directly from `main`. Commit and push.

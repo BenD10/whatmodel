@@ -246,10 +246,10 @@
 
   .selected-display {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 1px;
+    left: 1px;
     right: 2rem;
-    bottom: 0;
+    bottom: 1px;
     display: flex;
     align-items: center;
     padding: 0 0.75rem;
@@ -257,7 +257,7 @@
     pointer-events: none;
     color: var(--text);
     background: var(--bg);
-    border-radius: var(--radius-sm);
+    border-radius: calc(var(--radius-sm) - 1px);
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
