@@ -4,11 +4,9 @@
 [![Website](https://img.shields.io/website?url=https%3A%2F%2Fwhatmodelscanirun.com&label=whatmodelscanirun.com)](https://whatmodelscanirun.com/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 
-A static website that helps users find out which AI models their GPU can run — and how well.
+A static website that helps users find out which AI models their GPU can run — and how well. Pick your GPU (or enter VRAM manually), optionally set a minimum context window, and instantly see which models fit, how much context you can afford, and estimated generation speed.
 
-**Try it out: [whatmodelscanirun.com](https://whatmodelscanirun.com/)**
-
-Pick your GPU (or enter VRAM manually), optionally set a minimum context window, and instantly see which models fit, how much context you can afford, and estimated generation speed.
+### **[Try it out at whatmodelscanirun.com →](https://whatmodelscanirun.com/)**
 
 ---
 
