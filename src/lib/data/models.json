@@ -485,6 +485,33 @@
   },
 
   {
+    "id": "qwen3-coder-30b-a3b-q8",
+    "name": "Qwen3 Coder 30B-A3B",
+    "params_b": 30.5,
+    "quantization": "Q8_0",
+    "weight_gb": 32.5,
+    "kv_per_1k_gb": 0.092,
+    "max_context_k": 256,
+    "mmlu_score": 81.0,
+    "swe_bench_score": null,
+    "features": ["tool_use"],
+    "notes": "MoE: 30.5B total, 3.3B active (128 experts, 8 active). Coding-specialized, non-thinking mode only. 48 layers, 4 KV heads, head_dim 128. GGUF Q8_0 file size."
+  },
+  {
+    "id": "qwen3-coder-30b-a3b-q4",
+    "name": "Qwen3 Coder 30B-A3B",
+    "params_b": 30.5,
+    "quantization": "Q4_K_M",
+    "weight_gb": 18.6,
+    "kv_per_1k_gb": 0.092,
+    "max_context_k": 256,
+    "mmlu_score": 81.0,
+    "swe_bench_score": null,
+    "features": ["tool_use"],
+    "notes": "MoE: 30.5B total, 3.3B active (128 experts, 8 active). Coding-specialized, non-thinking mode only. 48 layers, 4 KV heads, head_dim 128. GGUF Q4_K_M file size."
+  },
+
+  {
     "id": "qwen3-next-80b-a3b-q8",
     "name": "Qwen3 Next 80B-A3B",
     "params_b": 80,
