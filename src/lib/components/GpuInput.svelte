@@ -46,12 +46,14 @@
     minContextK = $bindable(null),
     minTokPerSec = $bindable(null),
     requiredFeatures = $bindable([]),
+    systemRamGB = $bindable(null),
     initialGpuId = '',
     initialMemIdx = '',
     initialManualVram = '',
     initialContextK = '',
     initialSpeed = '',
     initialFeatures = [],
+    initialSystemRam = '',
     onstatechange = () => {},
   } = $props();
 
@@ -61,6 +63,7 @@
   let speedSelection = $state(initialSpeed !== '' ? Number(initialSpeed) : '');
   let selectedMemoryIdx = $state(initialMemIdx !== '' ? Number(initialMemIdx) : '');
   let featureSelection = $state(initialFeatures.length > 0 ? [...initialFeatures] : []);
+  let systemRamInput = $state(initialSystemRam);
 
   // Derived: does the selected GPU have configurable memory?
   let selectedGpu = $derived(gpus.find((g) => g.id === selectedGpuId) ?? null);
@@ -74,6 +77,7 @@
       contextK: contextSelection,
       speed: speedSelection,
       features: featureSelection,
+      systemRam: systemRamInput,
     });
   }
 
@@ -146,6 +150,15 @@
     fireStateChange();
   }
 
+  function onSystemRamInput() {
+    const val = parseFloat(systemRamInput);
+    systemRamGB = !Number.isNaN(val) && val > 0 ? val : null;
+    if (systemRamGB != null) {
+      trackFilterChanged('system_ram', systemRamGB);
+    }
+    fireStateChange();
+  }
+
   // Apply initial values on mount (from URL query params)
   onMount(() => {
     if (initialGpuId) {
@@ -180,6 +193,13 @@
     }
     if (initialFeatures.length > 0) {
       requiredFeatures = [...initialFeatures];
+    }
+
+    if (initialSystemRam !== '') {
+      const val = parseFloat(initialSystemRam);
+      if (!Number.isNaN(val) && val > 0) {
+        systemRamGB = val;
+      }
     }
   });
 </script>
@@ -255,11 +275,34 @@
       />
     </div>
 
+    <div class="field ram-field">
+      <label for="system-ram">
+        System RAM
+        <span class="optional-label">(optional)</span>
+        <span class="tooltip-wrap" tabindex="0" role="button" aria-label="What is system RAM offloading?">
+          <span class="info-icon">?</span>
+          <span class="tooltip">Enter your system RAM to enable offloading. Models can use system memory to extend context windows or run larger models at reduced speed.</span>
+        </span>
+      </label>
+      <div class="ram-input-wrap">
+        <input
+          id="system-ram"
+          type="number"
+          min="0"
+          step="1"
+          placeholder="e.g. 32"
+          bind:value={systemRamInput}
+          oninput={onSystemRamInput}
+        />
+        <span class="input-suffix">GB</span>
+      </div>
+    </div>
+
   </div>
 
   <div class="effective">
     {#if vram != null}
-      Using <strong>{vram} GB</strong> VRAM{#if minContextK != null}, need at least <strong>{minContextK}K</strong> context{/if}{#if minTokPerSec != null}, need at least <strong>{minTokPerSec} tok/s</strong>{/if}
+      Using <strong>{vram} GB</strong> VRAM{#if systemRamGB != null} + <strong>{systemRamGB} GB</strong> system RAM{/if}{#if minContextK != null}, need at least <strong>{minContextK}K</strong> context{/if}{#if minTokPerSec != null}, need at least <strong>{minTokPerSec} tok/s</strong>{/if}
     {:else}
       <span class="muted">Pick a GPU or enter VRAM to get started</span>
     {/if}
@@ -353,6 +396,91 @@
     color: var(--text-muted);
   }
 
+  .optional-label {
+    font-weight: 400;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    opacity: 0.7;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  .tooltip-wrap {
+    position: relative;
+    display: inline-flex;
+    cursor: help;
+    outline: none;
+    vertical-align: middle;
+  }
+
+  .info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.85rem;
+    height: 0.85rem;
+    border-radius: 50%;
+    border: 1px solid var(--text-muted);
+    font-size: 0.55rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .tooltip-wrap:hover .info-icon,
+  .tooltip-wrap:focus .info-icon {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 0.5rem);
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: 260px;
+    padding: 0.55rem 0.75rem;
+    background: var(--surface, #1e1e2e);
+    border: 1px solid var(--border, #333);
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 400;
+    line-height: 1.45;
+    color: var(--text, #e0e0e0);
+    text-transform: none;
+    letter-spacing: normal;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+    pointer-events: none;
+  }
+
+  .tooltip-wrap:hover .tooltip,
+  .tooltip-wrap:focus .tooltip {
+    display: block;
+  }
+
+  .ram-field {
+    flex-shrink: 0;
+  }
+
+  .ram-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .ram-input-wrap input[type="number"] {
+    width: 80px;
+  }
+
+  .input-suffix {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding-bottom: 0.1rem;
+  }
 
   @media (max-width: 600px) {
     .gpu-input {
@@ -382,6 +510,10 @@
       width: 100%;
     }
 
+    .ram-input-wrap input[type="number"] {
+      width: 100%;
+    }
+
     .divider {
       text-align: center;
       padding: 0.25rem 0;
@@ -389,6 +521,10 @@
 
     .field {
       width: 100%;
+    }
+
+    .ram-field {
+      flex-shrink: 1;
     }
   }
 </style>

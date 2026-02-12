@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
   calcMaxContext,
+  calcMaxContextWithOffload,
+  calcOffloadConfig,
+  calcOffloadPenalty,
   calcTokPerSec,
   contextLabel,
   tokLabel,
@@ -10,6 +13,7 @@ import {
   groupVariants,
   INFERENCE_OVERHEAD_GB,
   TIGHT_FIT_CONTEXT_K,
+  MAX_OFFLOAD_RATIO,
 } from './calculations.js';
 
 // ---------------------------------------------------------------------------
@@ -25,6 +29,7 @@ const smallModel = {
   weight_gb: 1.32,
   kv_per_1k_gb: 0.031,
   max_context_k: 128,
+  layers: 16,
   mmlu_score: 49.3,
   swe_bench_score: null,
 };
@@ -38,6 +43,7 @@ const mediumModel = {
   weight_gb: 8.99,
   kv_per_1k_gb: 0.25,
   max_context_k: 128,
+  layers: 48,
   mmlu_score: 79.9,
   swe_bench_score: 22.6,
 };
@@ -51,6 +57,7 @@ const largeModel = {
   weight_gb: 43.5,
   kv_per_1k_gb: 1.25,
   max_context_k: 128,
+  layers: 80,
   mmlu_score: 86.1,
   swe_bench_score: 33.4,
 };
@@ -64,6 +71,7 @@ const visionModel = {
   weight_gb: 12.5,
   kv_per_1k_gb: 0.466,
   max_context_k: 128,
+  layers: 48,
   mmlu_score: 74.0,
   swe_bench_score: 12.8,
   features: ['vision'],
@@ -78,6 +86,7 @@ const reasoningModel = {
   weight_gb: 8.99,
   kv_per_1k_gb: 0.183,
   max_context_k: 128,
+  layers: 48,
   mmlu_score: 72.0,
   swe_bench_score: 20.4,
   features: ['reasoning'],
@@ -92,6 +101,7 @@ const multiFeatureModel = {
   weight_gb: 25.0,
   kv_per_1k_gb: 0.153,
   max_context_k: 128,
+  layers: 40,
   mmlu_score: 81.0,
   swe_bench_score: 20.8,
   features: ['vision', 'tool_use'],
@@ -550,5 +560,251 @@ describe('codingQualityTier', () => {
   it('returns Basic for score < 8', () => {
     expect(codingQualityTier(7.9)).toEqual({ label: 'Basic', cls: 'tier-basic' });
     expect(codingQualityTier(0)).toEqual({ label: 'Basic', cls: 'tier-basic' });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// calcMaxContextWithOffload
+// ---------------------------------------------------------------------------
+
+describe('calcMaxContextWithOffload', () => {
+  it('behaves like calcMaxContext when systemRamGB is null', () => {
+    // 24 GB VRAM, 8.99 GB weights → 15.01 / 0.25 = 60K (same as calcMaxContext)
+    const result = calcMaxContextWithOffload(mediumModel, 24, null);
+    expect(result.maxCtxK).toBe(60);
+    expect(result.ramCtxK).toBe(0);
+    expect(result.usingSystemRam).toBe(false);
+  });
+
+  it('behaves like calcMaxContext when systemRamGB is undefined', () => {
+    const result = calcMaxContextWithOffload(mediumModel, 24, undefined);
+    expect(result.maxCtxK).toBe(60);
+    expect(result.usingSystemRam).toBe(false);
+  });
+
+  it('extends context with system RAM', () => {
+    // 12 GB VRAM, 8.99 GB weights → VRAM for KV: 3.01 → vramCtxK = 12K
+    // 32 GB system RAM → 32 / 0.25 = 128K from RAM
+    // Total: 12 + 128 = 140K, capped at max_context_k = 128K
+    const result = calcMaxContextWithOffload(mediumModel, 12, 32);
+    expect(result.maxCtxK).toBe(128);
+    expect(result.vramCtxK).toBe(12);
+    expect(result.ramCtxK).toBe(116); // 128 - 12 = 116K from RAM
+    expect(result.usingSystemRam).toBe(true);
+  });
+
+  it('does not use system RAM when VRAM is sufficient for max context', () => {
+    // Small model: 1.32 GB weights, very low KV. 8 GB VRAM → plenty of context
+    // vramCtxK = floor((8 - 1.32) / 0.031) = floor(215.48) = 215K, capped at 128K
+    const result = calcMaxContextWithOffload(smallModel, 8, 32);
+    expect(result.maxCtxK).toBe(128);
+    expect(result.ramCtxK).toBe(0);
+    expect(result.usingSystemRam).toBe(false);
+  });
+
+  it('returns 0 when VRAM is less than model weights', () => {
+    const result = calcMaxContextWithOffload(mediumModel, 5, 32);
+    expect(result.maxCtxK).toBe(0);
+    expect(result.usingSystemRam).toBe(false);
+  });
+
+  it('handles zero kv_per_1k_gb gracefully', () => {
+    const zeroCost = { ...smallModel, kv_per_1k_gb: 0 };
+    const result = calcMaxContextWithOffload(zeroCost, 8, 32);
+    expect(result.maxCtxK).toBe(128);
+    expect(result.usingSystemRam).toBe(false);
+  });
+
+  it('limits extension to what system RAM can provide', () => {
+    // 10 GB VRAM, 8.99 weights → 1.01 GB for KV → vramCtxK = 4K
+    // 2 GB system RAM → 2 / 0.25 = 8K from RAM
+    // Total: 4 + 8 = 12K (under model max 128K)
+    const result = calcMaxContextWithOffload(mediumModel, 10, 2);
+    expect(result.maxCtxK).toBe(12);
+    expect(result.vramCtxK).toBe(4);
+    expect(result.ramCtxK).toBe(8);
+    expect(result.usingSystemRam).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// calcOffloadConfig
+// ---------------------------------------------------------------------------
+
+describe('calcOffloadConfig', () => {
+  it('returns feasible with 0 offload when model fits in VRAM', () => {
+    // 24 GB VRAM, 8.99 GB weights → fits (8.99 < 24 - 1.0)
+    const result = calcOffloadConfig(mediumModel, 24, 32);
+    expect(result.feasible).toBe(true);
+    expect(result.offloadRatio).toBe(0);
+    expect(result.ramWeightGB).toBe(0);
+  });
+
+  it('returns feasible with offloading when model slightly exceeds VRAM', () => {
+    // 8 GB VRAM → available for weights = 8 - 1.0 = 7 GB
+    // 8.99 GB weights → 1.99 GB overflow → offloadRatio = 1.99/8.99 ≈ 0.221
+    const result = calcOffloadConfig(mediumModel, 8, 32);
+    expect(result.feasible).toBe(true);
+    expect(result.ramWeightGB).toBeCloseTo(1.99, 1);
+    expect(result.offloadRatio).toBeCloseTo(0.221, 2);
+    expect(result.estimatedLayers).toBeGreaterThan(0);
+  });
+
+  it('returns infeasible when offload ratio exceeds 50%', () => {
+    // 4 GB VRAM → available = 3 GB, model = 8.99 GB → 5.99 GB to offload
+    // offloadRatio = 5.99/8.99 = 0.67 → exceeds MAX_OFFLOAD_RATIO
+    const result = calcOffloadConfig(mediumModel, 4, 32);
+    expect(result.feasible).toBe(false);
+    expect(MAX_OFFLOAD_RATIO).toBe(0.5);
+  });
+
+  it('returns infeasible when system RAM is null', () => {
+    const result = calcOffloadConfig(mediumModel, 8, null);
+    expect(result.feasible).toBe(false);
+  });
+
+  it('returns infeasible when system RAM is insufficient', () => {
+    // 8 GB VRAM → 1.99 GB overflow, but only 1 GB system RAM
+    const result = calcOffloadConfig(mediumModel, 8, 1);
+    expect(result.feasible).toBe(false);
+  });
+
+  it('calculates correct estimated layers', () => {
+    // mediumModel: 48 layers, 8.99 GB weights
+    // 8 GB VRAM → offloadRatio ≈ 0.221 → estimated layers = round(0.221 * 48) ≈ 11
+    const result = calcOffloadConfig(mediumModel, 8, 32);
+    expect(result.estimatedLayers).toBe(Math.round(result.offloadRatio * 48));
+  });
+
+  it('handles 0 VRAM', () => {
+    const result = calcOffloadConfig(smallModel, 0, 32);
+    // 0 VRAM → available = -1, ramWeightGB = 1.32 - 0 = 1.32
+    // offloadRatio = 1.32/1.32 = 1.0 → exceeds MAX_OFFLOAD_RATIO
+    expect(result.feasible).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// calcOffloadPenalty
+// ---------------------------------------------------------------------------
+
+describe('calcOffloadPenalty', () => {
+  it('returns 0 penalty for 0 offload ratio', () => {
+    const result = calcOffloadPenalty(0, 500);
+    expect(result.penaltyPercent).toBe(0);
+    expect(result.speedMultiplier).toBe(1.0);
+  });
+
+  it('returns positive penalty for positive offload ratio', () => {
+    const result = calcOffloadPenalty(0.25, 500);
+    expect(result.penaltyPercent).toBeGreaterThan(0);
+    expect(result.speedMultiplier).toBeLessThan(1.0);
+  });
+
+  it('applies lower penalty for low-bandwidth GPUs', () => {
+    const lowBw = calcOffloadPenalty(0.3, 300);
+    const highBw = calcOffloadPenalty(0.3, 800);
+    expect(lowBw.penaltyPercent).toBeLessThan(highBw.penaltyPercent);
+  });
+
+  it('caps penalty at 50%', () => {
+    const result = calcOffloadPenalty(0.5, 1000);
+    expect(result.penaltyPercent).toBeLessThanOrEqual(50);
+    expect(result.speedMultiplier).toBeGreaterThanOrEqual(0.5);
+  });
+
+  it('handles null bandwidth (uses full penalty)', () => {
+    const result = calcOffloadPenalty(0.3, null);
+    expect(result.penaltyPercent).toBeGreaterThan(0);
+  });
+
+  it('penalty increases with offload ratio', () => {
+    const low = calcOffloadPenalty(0.1, 500);
+    const high = calcOffloadPenalty(0.4, 500);
+    expect(high.penaltyPercent).toBeGreaterThan(low.penaltyPercent);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// bucketModels with systemRamGB (offloading)
+// ---------------------------------------------------------------------------
+
+describe('bucketModels with offloading', () => {
+  const models = [smallModel, mediumModel, largeModel];
+
+  it('behaves identically when systemRamGB is null', () => {
+    const without = bucketModels(models, 8, 500, null, null, [], 'mmlu', null);
+    const withNull = bucketModels(models, 8, 500, null, null, [], 'mmlu');
+    expect(without.fits.length).toBe(withNull.fits.length);
+    expect(without.tight.length).toBe(withNull.tight.length);
+    expect(without.noFit.length).toBe(withNull.noFit.length);
+  });
+
+  it('moves offloadable models from noFit to tight', () => {
+    // mediumModel (8.99 GB) on 8 GB VRAM without RAM → noFit
+    const noRam = bucketModels([mediumModel], 8, 500, null, null, [], 'mmlu', null);
+    expect(noRam.noFit.some((m) => m.id === 'test-medium')).toBe(true);
+
+    // With 32 GB system RAM → tight (offloadable, ~22% offload)
+    const withRam = bucketModels([mediumModel], 8, 500, null, null, [], 'mmlu', 32);
+    expect(withRam.tight.some((m) => m.id === 'test-medium')).toBe(true);
+    expect(withRam.noFit.some((m) => m.id === 'test-medium')).toBe(false);
+  });
+
+  it('keeps models in noFit when offload ratio exceeds 50%', () => {
+    // largeModel (43.5 GB) on 24 GB → offloadRatio = (43.5 - 23) / 43.5 ≈ 0.47
+    // Actually: available = 24 - 1.0 = 23, overflow = 43.5 - 23 = 20.5, ratio = 20.5/43.5 ≈ 0.47
+    // That's under 0.5, so it should be feasible with enough RAM
+    const result = bucketModels([largeModel], 24, 500, null, null, [], 'mmlu', 64);
+    expect(result.tight.some((m) => m.id === 'test-large')).toBe(true);
+
+    // On 16 GB → available = 15, overflow = 28.5, ratio = 28.5/43.5 ≈ 0.655 → infeasible
+    const result2 = bucketModels([largeModel], 16, 500, null, null, [], 'mmlu', 64);
+    expect(result2.noFit.some((m) => m.id === 'test-large')).toBe(true);
+  });
+
+  it('enriches offloaded models with offloadInfo', () => {
+    const result = bucketModels([mediumModel], 8, 500, null, null, [], 'mmlu', 32);
+    const m = result.tight.find((m) => m.id === 'test-medium');
+    expect(m.offloadInfo).not.toBeNull();
+    expect(m.offloadInfo.type).toBe('weights');
+    expect(m.offloadInfo.offloadRatio).toBeGreaterThan(0);
+    expect(m.offloadInfo.penaltyPercent).toBeGreaterThan(0);
+  });
+
+  it('extends context with system RAM for models that fit', () => {
+    // smallModel (1.32 GB) on 2 GB VRAM: vramCtxK = floor((2-1.32)/0.031) = 21K
+    // With 32 GB system RAM: extends to 128K (model max)
+    const result = bucketModels([smallModel], 2, 500, null, null, [], 'mmlu', 32);
+    const m = result.fits[0];
+    expect(m.maxCtxK).toBe(128);
+    expect(m.ctxInfo).not.toBeNull();
+    expect(m.ctxInfo.ramCtxK).toBeGreaterThan(0);
+  });
+
+  it('does not add ctxInfo when no RAM extension needed', () => {
+    // smallModel on 8 GB → already gets 128K (max) in VRAM alone
+    const result = bucketModels([smallModel], 8, 500, null, null, [], 'mmlu', 32);
+    const m = result.fits[0];
+    expect(m.ctxInfo).toBeNull();
+  });
+
+  it('applies speed penalty for offloaded models', () => {
+    // mediumModel: tok/s = round(500 / (8.99 + 1.0)) = round(50.05) = 50
+    const noRam = bucketModels([mediumModel], 24, 500, null, null, [], 'mmlu', null);
+    const fullSpeed = noRam.fits[0].tokPerSec;
+
+    // With offloading on 8 GB VRAM
+    const withRam = bucketModels([mediumModel], 8, 500, null, null, [], 'mmlu', 32);
+    const offloadSpeed = withRam.tight[0].tokPerSec;
+
+    expect(offloadSpeed).toBeLessThan(fullSpeed);
+  });
+
+  it('offloaded models never go to fits (always tight)', () => {
+    // Even with no context/speed filters, offloaded models stay in tight
+    const result = bucketModels([mediumModel], 8, 500, null, null, [], 'mmlu', 32);
+    expect(result.fits.some((m) => m.id === 'test-medium')).toBe(false);
+    expect(result.tight.some((m) => m.id === 'test-medium')).toBe(true);
   });
 });

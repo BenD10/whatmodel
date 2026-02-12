@@ -3,7 +3,7 @@
   import { contextLabel, tokLabel, bucketModels, groupVariants } from '$lib/calculations.js';
   import { trackFilterChanged } from '$lib/analytics.js';
 
-  let { vram, bandwidth = null, minContextK = null, minTokPerSec = null, requiredFeatures = [], sortBy = $bindable('mmlu'), onsortchange = () => {} } = $props();
+  let { vram, bandwidth = null, minContextK = null, minTokPerSec = null, requiredFeatures = [], systemRamGB = null, sortBy = $bindable('mmlu'), onsortchange = () => {} } = $props();
 
   function onSortByChange(e) {
     sortBy = e.target.value;
@@ -15,7 +15,7 @@
 
   let results = $derived.by(() => {
     if (vram == null) return null;
-    return bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec, requiredFeatures, sortBy);
+    return bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec, requiredFeatures, sortBy, systemRamGB);
   });
 
   let groupedFits = $derived(results ? groupVariants(results.fits) : []);
@@ -126,6 +126,9 @@
                       {/if}
                     </div>
                   </div>
+                  {#if v.ctxInfo}
+                    <p class="reason variant-reason ram-note">{contextLabel(v.ctxInfo.vramCtxK)} on GPU, {contextLabel(v.ctxInfo.ramCtxK)} extended via system RAM</p>
+                  {/if}
                 {/each}
               </div>
             </li>
@@ -158,12 +161,18 @@
                       {/if}
                     </div>
                   </div>
-                  {#if !v.meetsMinCtx && v.fitsAtAll}
+                  {#if v.offloadInfo}
+                    <p class="reason variant-reason offload-note">Requires {v.offloadInfo.gpuWeightGB.toFixed(1)} GB GPU + {v.offloadInfo.ramWeightGB.toFixed(1)} GB system RAM (~{v.offloadInfo.estimatedLayers} layers offloaded) — ~{v.offloadInfo.penaltyPercent}% slower</p>
+                  {/if}
+                  {#if v.ctxInfo}
+                    <p class="reason variant-reason ram-note">{contextLabel(v.ctxInfo.vramCtxK)} on GPU, {contextLabel(v.ctxInfo.ramCtxK)} extended via system RAM</p>
+                  {/if}
+                  {#if !v.meetsMinCtx && v.fitsAtAll && !v.offloadInfo}
                     <p class="reason variant-reason">Only {contextLabel(v.maxCtxK)} context — below your {contextLabel(minContextK)} minimum</p>
-                  {:else if v.maxCtxK < 4}
+                  {:else if v.maxCtxK < 4 && !v.offloadInfo}
                     <p class="reason variant-reason">Very limited context window ({contextLabel(v.maxCtxK)})</p>
                   {/if}
-                  {#if !v.meetsMinSpeed && v.tokPerSec != null}
+                  {#if !v.meetsMinSpeed && v.tokPerSec != null && !v.offloadInfo}
                     <p class="reason variant-reason">~{v.tokPerSec} tok/s — below your {minTokPerSec} tok/s minimum</p>
                   {/if}
                   {#if !v.meetsFeatures}
@@ -579,6 +588,17 @@
     margin-bottom: 0.15rem;
     padding-left: 1.85rem; /* indent past the quant badge */
     font-size: 0.75rem;
+  }
+
+  .reason.offload-note {
+    color: var(--tight, #ffa726);
+    font-style: normal;
+  }
+
+  .reason.ram-note {
+    color: var(--text-muted);
+    font-style: normal;
+    opacity: 0.85;
   }
 
   @media (max-width: 600px) {

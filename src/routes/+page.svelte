@@ -64,12 +64,22 @@
       features = rawFeat.split(',').filter((f) => validFeatures.includes(f));
     }
 
+    // Validate system RAM — must be a positive number
+    let systemRam = '';
+    const rawRam = params.get('ram') ?? '';
+    if (rawRam !== '') {
+      const val = parseFloat(rawRam);
+      if (!Number.isNaN(val) && val > 0 && val <= 1024) {
+        systemRam = rawRam;
+      }
+    }
+
     // Validate sort benchmark — 'swe-bench' or default to 'mmlu'
     // Also support legacy agentic=1 param for backward compatibility
     const rawSort = params.get('sort') ?? '';
     const sortBy = rawSort === 'swe-bench' || params.get('agentic') === '1' ? 'swe-bench' : 'mmlu';
 
-    return { gpuId, memIdx, manualVram, contextK, speed, features, sortBy };
+    return { gpuId, memIdx, manualVram, contextK, speed, features, systemRam, sortBy };
   }
 
   /** Derive initial vram/bandwidth from parsed URL params so results render immediately */
@@ -93,7 +103,7 @@
   // During SSR (static build) browser is false so we get safe defaults.
   const urlParams = browser
     ? parseUrlParams(new URL(window.location.href).searchParams)
-    : { gpuId: '', memIdx: '', manualVram: '', contextK: '', speed: '', features: [], sortBy: 'mmlu' };
+    : { gpuId: '', memIdx: '', manualVram: '', contextK: '', speed: '', features: [], systemRam: '', sortBy: 'mmlu' };
 
   const initialHw = computeInitialHardware(urlParams);
 
@@ -102,6 +112,7 @@
   let minContextK = $state(urlParams.contextK !== '' ? Number(urlParams.contextK) : null);
   let minTokPerSec = $state(urlParams.speed !== '' ? Number(urlParams.speed) : null);
   let requiredFeatures = $state(urlParams.features.length > 0 ? [...urlParams.features] : []);
+  let systemRamGB = $state(urlParams.systemRam !== '' ? parseFloat(urlParams.systemRam) : null);
   let sortBy = $state(urlParams.sortBy);
 
   // Initial values passed to GpuInput (constant after parse, no need for $state)
@@ -111,6 +122,7 @@
   const initialContextK = urlParams.contextK;
   const initialSpeed = urlParams.speed;
   const initialFeatures = urlParams.features;
+  const initialSystemRam = urlParams.systemRam;
 
   function updateUrl(overrides = {}) {
     if (!browser) return;
@@ -134,6 +146,7 @@
       ctx: state.contextK !== '' ? state.contextK : null,
       speed: state.speed !== '' ? state.speed : null,
       feat: state.features?.length > 0 ? state.features.join(',') : null,
+      ram: state.systemRam || null,
       sort: sortBy !== 'mmlu' ? sortBy : null,
     });
   }
@@ -186,18 +199,20 @@
     bind:minContextK
     bind:minTokPerSec
     bind:requiredFeatures
+    bind:systemRamGB
     {initialGpuId}
     {initialMemIdx}
     {initialManualVram}
     {initialContextK}
     {initialSpeed}
     {initialFeatures}
+    {initialSystemRam}
     onstatechange={onStateChange}
   />
 
   <section class="results-section">
     <h2>Results</h2>
-    <ModelResults {vram} {bandwidth} {minContextK} {minTokPerSec} {requiredFeatures} bind:sortBy onsortchange={onSortChange} />
+    <ModelResults {vram} {bandwidth} {minContextK} {minTokPerSec} {requiredFeatures} {systemRamGB} bind:sortBy onsortchange={onSortChange} />
   </section>
 </div>
 

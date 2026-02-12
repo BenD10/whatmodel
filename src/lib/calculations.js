@@ -51,6 +51,128 @@ export function calcTokPerSec(model, bandwidth) {
 }
 
 /**
+ * Maximum weight-offload ratio we consider practical. Beyond this the
+ * model is too slow to be useful and goes into "doesn't fit".
+ */
+export const MAX_OFFLOAD_RATIO = 0.5;
+
+/**
+ * Calculate the max context (in K tokens) when system RAM can be used
+ * to extend the KV cache beyond what VRAM alone supports.
+ *
+ * When systemRamGB is null/undefined, behaves identically to calcMaxContext().
+ *
+ * @param {{ weight_gb: number, kv_per_1k_gb: number, max_context_k: number }} model
+ * @param {number} vram  Available VRAM in GB
+ * @param {number|null} systemRamGB  System RAM available for KV overflow (null = VRAM-only)
+ * @returns {{ maxCtxK: number, vramCtxK: number, ramCtxK: number, usingSystemRam: boolean }}
+ */
+export function calcMaxContextWithOffload(model, vram, systemRamGB) {
+  const availableForKv = vram - model.weight_gb;
+  if (availableForKv <= 0) return { maxCtxK: 0, vramCtxK: 0, ramCtxK: 0, usingSystemRam: false };
+  if (model.kv_per_1k_gb <= 0) {
+    return { maxCtxK: model.max_context_k, vramCtxK: model.max_context_k, ramCtxK: 0, usingSystemRam: false };
+  }
+
+  const vramCtxK = Math.floor(availableForKv / model.kv_per_1k_gb);
+
+  if (systemRamGB == null) {
+    // VRAM-only: same as calcMaxContext
+    const capped = Math.min(vramCtxK, model.max_context_k);
+    return { maxCtxK: capped, vramCtxK: capped, ramCtxK: 0, usingSystemRam: false };
+  }
+
+  const ramCtxK = Math.floor(systemRamGB / model.kv_per_1k_gb);
+  const totalCtxK = Math.min(vramCtxK + ramCtxK, model.max_context_k);
+  const actualRamCtxK = totalCtxK - Math.min(vramCtxK, totalCtxK);
+
+  return {
+    maxCtxK: totalCtxK,
+    vramCtxK: Math.min(vramCtxK, totalCtxK),
+    ramCtxK: actualRamCtxK,
+    usingSystemRam: actualRamCtxK > 0,
+  };
+}
+
+/**
+ * Calculate how much of a model's weights must be offloaded to system RAM
+ * when the model doesn't fully fit in VRAM.
+ *
+ * Returns feasible: false when offloading is not possible (no system RAM,
+ * >50% offload ratio, or insufficient system RAM).
+ *
+ * @param {{ weight_gb: number, layers: number }} model
+ * @param {number} vram  Available VRAM in GB
+ * @param {number|null} systemRamGB  System RAM available (null = no offloading)
+ * @returns {{ feasible: boolean, gpuWeightGB?: number, ramWeightGB?: number, offloadRatio?: number, estimatedLayers?: number }}
+ */
+export function calcOffloadConfig(model, vram, systemRamGB) {
+  // Reserve minimal space for KV cache + overhead
+  const reserveForKV = INFERENCE_OVERHEAD_GB;
+  const availableForWeights = vram - reserveForKV;
+
+  // Model fits entirely on GPU — no offloading needed
+  if (model.weight_gb <= availableForWeights) {
+    return { feasible: true, gpuWeightGB: model.weight_gb, ramWeightGB: 0, offloadRatio: 0, estimatedLayers: 0 };
+  }
+
+  // Can't offload without system RAM
+  if (systemRamGB == null) return { feasible: false };
+
+  const ramWeightGB = model.weight_gb - Math.max(availableForWeights, 0);
+  const offloadRatio = ramWeightGB / model.weight_gb;
+
+  // Too much offload is impractical, or not enough system RAM
+  if (offloadRatio > MAX_OFFLOAD_RATIO || ramWeightGB > systemRamGB) {
+    return { feasible: false };
+  }
+
+  return {
+    feasible: true,
+    gpuWeightGB: Math.max(availableForWeights, 0),
+    ramWeightGB,
+    offloadRatio,
+    estimatedLayers: Math.round(offloadRatio * (model.layers ?? 0)),
+  };
+}
+
+/**
+ * Estimate the performance penalty from weight offloading.
+ *
+ * Based on empirical data from NEO, OFFMATE, and llama.cpp benchmarks:
+ * - Base penalty scales linearly from ~15% at low offload to ~50% at max offload
+ * - Lower-bandwidth GPUs see relatively less penalty (smaller gap between
+ *   GPU memory and system RAM speeds)
+ *
+ * @param {number} offloadRatio  Fraction of weights offloaded (0–0.5)
+ * @param {number|null} bandwidth  GPU memory bandwidth in GB/s (null if unknown)
+ * @returns {{ penaltyPercent: number, speedMultiplier: number }}
+ */
+export function calcOffloadPenalty(offloadRatio, bandwidth) {
+  if (offloadRatio <= 0) return { penaltyPercent: 0, speedMultiplier: 1.0 };
+
+  // Base penalty: 15% at minimal offload, scaling to 50% at max
+  let penalty = 0.15 + offloadRatio * 0.70;
+
+  // Bandwidth adjustment: weaker GPUs (<400 GB/s) see ~20% less penalty
+  if (bandwidth != null) {
+    if (bandwidth < 400) {
+      penalty *= 0.80;
+    } else if (bandwidth < 700) {
+      penalty *= 0.90;
+    }
+    // High-end GPUs (700+) use full penalty
+  }
+
+  penalty = Math.min(penalty, 0.50);
+
+  return {
+    penaltyPercent: Math.round(penalty * 100),
+    speedMultiplier: 1 - penalty,
+  };
+}
+
+/**
  * Format a context value (in K tokens) for display.
  * @param {number} k  Context in K tokens
  * @returns {string}
@@ -118,6 +240,11 @@ function compareScores(a, b) {
  * required-features filters.
  * Results are sorted by the selected benchmark (descending), with context/weight as tiebreakers.
  *
+ * When systemRamGB is provided:
+ * - Models that don't fit in VRAM may be moved to "tight" via weight offloading
+ * - Models that fit but have limited context get extended context via KV-cache overflow
+ * - Enriched entries gain offloadInfo for UI display
+ *
  * When sortBy is 'swe-bench':
  * - Models are sorted by swe_bench_score instead of mmlu_score
  * - Quality tier uses codingQualityTier() thresholds
@@ -130,20 +257,74 @@ function compareScores(a, b) {
  * @param {number|null} minTokPerSec Minimum required tok/s (null = any)
  * @param {string[]} requiredFeatures  Features the model must support (empty = any)
  * @param {string} sortBy  Benchmark to sort by: 'mmlu' (default) or 'swe-bench'
+ * @param {number|null} systemRamGB  System RAM for offloading (null = VRAM-only)
  * @returns {{ fits: Array, tight: Array, noFit: Array }}
  */
-export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec, requiredFeatures = [], sortBy = 'mmlu') {
+export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec, requiredFeatures = [], sortBy = 'mmlu', systemRamGB = null) {
   const effectiveMinCtx = minContextK;
 
   const entries = allModels.map((m) => {
-    const maxCtxK = calcMaxContext(m, vram);
+    // Check if model weights fit in VRAM (basic check)
     const totalAtMinCtx = m.weight_gb + m.kv_per_1k_gb; // 1K min context
-    const fitsAtAll = vram >= totalAtMinCtx;
-    const meetsMinCtx = effectiveMinCtx != null ? maxCtxK >= effectiveMinCtx : true;
+    const fitsInVram = vram >= totalAtMinCtx;
+
+    // Try weight offloading if model doesn't fit in VRAM
+    let offloadInfo = null;
+    let weightsAvailable = fitsInVram; // Can we run this model at all?
+
+    if (!fitsInVram && systemRamGB != null) {
+      const offload = calcOffloadConfig(m, vram, systemRamGB);
+      if (offload.feasible && offload.offloadRatio > 0) {
+        const penalty = calcOffloadPenalty(offload.offloadRatio, bandwidth);
+        offloadInfo = {
+          type: 'weights',
+          gpuWeightGB: offload.gpuWeightGB,
+          ramWeightGB: offload.ramWeightGB,
+          offloadRatio: offload.offloadRatio,
+          estimatedLayers: offload.estimatedLayers,
+          penaltyPercent: penalty.penaltyPercent,
+          speedMultiplier: penalty.speedMultiplier,
+        };
+        weightsAvailable = true;
+      }
+    }
+
+    // Calculate context — use system RAM for KV overflow when available
+    let maxCtxK;
+    let ctxInfo = null;
+
+    if (weightsAvailable && !offloadInfo && systemRamGB != null) {
+      // Model fits on GPU, potentially extend context with system RAM
+      const extended = calcMaxContextWithOffload(m, vram, systemRamGB);
+      maxCtxK = extended.maxCtxK;
+      if (extended.usingSystemRam) {
+        ctxInfo = {
+          vramCtxK: extended.vramCtxK,
+          ramCtxK: extended.ramCtxK,
+        };
+      }
+    } else if (offloadInfo) {
+      // Weight offloading: minimal context on remaining VRAM
+      // Available VRAM for KV = vram - gpuWeightGB (already accounted for overhead)
+      const vramForKv = Math.max(vram - offloadInfo.gpuWeightGB - INFERENCE_OVERHEAD_GB, 0);
+      maxCtxK = m.kv_per_1k_gb > 0
+        ? Math.min(Math.floor(vramForKv / m.kv_per_1k_gb), m.max_context_k)
+        : m.max_context_k;
+    } else {
+      maxCtxK = calcMaxContext(m, vram);
+    }
+
     // Model architecturally can't support the required context (regardless of VRAM)
     const modelSupportsCtx = effectiveMinCtx != null ? m.max_context_k >= effectiveMinCtx : true;
-    const tokPerSec = calcTokPerSec(m, bandwidth);
+    const meetsMinCtx = effectiveMinCtx != null ? maxCtxK >= effectiveMinCtx : true;
+
+    // Speed: apply offload penalty if applicable
+    let tokPerSec = calcTokPerSec(m, bandwidth);
+    if (tokPerSec != null && offloadInfo) {
+      tokPerSec = Math.round(tokPerSec * offloadInfo.speedMultiplier);
+    }
     const meetsMinSpeed = minTokPerSec != null && tokPerSec != null ? tokPerSec >= minTokPerSec : true;
+
     const modelFeatures = m.features ?? [];
     const meetsFeatures = requiredFeatures.length > 0
       ? requiredFeatures.every((f) => modelFeatures.includes(f))
@@ -151,7 +332,19 @@ export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerS
     const tier = sortBy === 'swe-bench'
       ? codingQualityTier(m.swe_bench_score ?? null)
       : qualityTier(m.mmlu_score);
-    return { ...m, maxCtxK, fitsAtAll, meetsMinCtx, meetsMinSpeed, meetsFeatures, modelSupportsCtx, tokPerSec, tier };
+    return {
+      ...m,
+      maxCtxK,
+      fitsAtAll: weightsAvailable,
+      meetsMinCtx,
+      meetsMinSpeed,
+      meetsFeatures,
+      modelSupportsCtx,
+      tokPerSec,
+      tier,
+      offloadInfo,
+      ctxInfo,
+    };
   });
 
   const fits = [];
@@ -160,9 +353,10 @@ export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerS
 
   for (const e of entries) {
     if (!e.fitsAtAll || !e.modelSupportsCtx) {
-      // Model doesn't fit in VRAM, or its architecture can't support the
-      // required context length (e.g. a 32K model when 64K is needed)
       noFit.push(e);
+    } else if (e.offloadInfo) {
+      // Weight offloading always goes to tight fit (never "runs well")
+      tight.push(e);
     } else if (!e.meetsMinCtx || !e.meetsMinSpeed || !e.meetsFeatures) {
       tight.push(e);
     } else if (e.maxCtxK < TIGHT_FIT_CONTEXT_K) {
