@@ -224,6 +224,23 @@ Apple Silicon chips use `vram_options` instead — an array of memory configurat
 
 ---
 
+## Helper scripts
+
+Helper scripts for maintaining JSON data are organized by domain:
+
+- `scripts/models/` - model helper scripts (`add_model.py`, `update_model_stats.py`, `list_recent_models.py`, `extract_model_ids.py`)
+- `scripts/gpus/` - GPU helper scripts (`add_gpu.py`, `update_gpu_specs.py`, `list_recent_gpus.py`, `extract_gpu_ids.py`)
+
+For full usage examples and flags, see:
+
+- `scripts/README.md`
+- `scripts/models/README.md`
+- `scripts/gpus/README.md`
+
+Top-level scripts under `scripts/` remain available for backward compatibility, but `scripts/models/` and `scripts/gpus/` are the preferred entry points for agents and contributors.
+
+---
+
 ## Adding data
 
 ### Adding a GPU
