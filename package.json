@@ -12,9 +12,9 @@
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.0",
-    "@sveltejs/kit": "^2.0.0",
+    "@sveltejs/kit": "^2.53.4",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
-    "svelte": "^5.53.0",
+    "svelte": "^5.53.7",
     "vite": "^6.0.0",
     "vitest": "^4.0.18"
   },
