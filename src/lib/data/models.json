@@ -603,7 +603,8 @@
     "features": [
       "tool_use"
     ],
-    "notes": "MoE: 30.5B total, 3.3B active (128 experts, 8 active). Coding-specialized, non-thinking mode only. 48 layers, 4 KV heads, head_dim 128. GGUF Q8_0 file size."
+    "notes": "MoE: 30.5B total, 3.3B active (128 experts, 8 active). Coding-specialized, non-thinking mode only. 48 layers, 4 KV heads, head_dim 128. GGUF Q8_0 file size.",
+    "active_weight_gb": 3.2
   },
   {
     "id": "qwen3-coder-30b-a3b-q4",
@@ -619,7 +620,8 @@
     "features": [
       "tool_use"
     ],
-    "notes": "MoE: 30.5B total, 3.3B active (128 experts, 8 active). Coding-specialized, non-thinking mode only. 48 layers, 4 KV heads, head_dim 128. GGUF Q4_K_M file size."
+    "notes": "MoE: 30.5B total, 3.3B active (128 experts, 8 active). Coding-specialized, non-thinking mode only. 48 layers, 4 KV heads, head_dim 128. GGUF Q4_K_M file size.",
+    "active_weight_gb": 1.83
   },
   {
     "id": "qwen3-next-80b-a3b-q8",
@@ -635,7 +637,8 @@
     "features": [
       "tool_use"
     ],
-    "notes": "MoE: 80B total, 3B active (512 experts). Hybrid architecture (Gated DeltaNet + Gated Attention). Only 12 of 48 layers use attention (2 KV heads, head_dim 256). KV estimate covers attention layers only; DeltaNet layers use fixed-size recurrent state. Instruct-only (no thinking mode). GGUF Q8_0 file size."
+    "notes": "MoE: 80B total, 3B active (512 experts). Hybrid architecture (Gated DeltaNet + Gated Attention). Only 12 of 48 layers use attention (2 KV heads, head_dim 256). KV estimate covers attention layers only; DeltaNet layers use fixed-size recurrent state. Instruct-only (no thinking mode). GGUF Q8_0 file size.",
+    "active_weight_gb": 3.18
   },
   {
     "id": "qwen3-next-80b-a3b-q4",
@@ -651,7 +654,8 @@
     "features": [
       "tool_use"
     ],
-    "notes": "MoE: 80B total, 3B active (512 experts). Hybrid architecture (Gated DeltaNet + Gated Attention). Only 12 of 48 layers use attention (2 KV heads, head_dim 256). KV estimate covers attention layers only; DeltaNet layers use fixed-size recurrent state. Instruct-only (no thinking mode). GGUF Q4_K_M file size."
+    "notes": "MoE: 80B total, 3B active (512 experts). Hybrid architecture (Gated DeltaNet + Gated Attention). Only 12 of 48 layers use attention (2 KV heads, head_dim 256). KV estimate covers attention layers only; DeltaNet layers use fixed-size recurrent state. Instruct-only (no thinking mode). GGUF Q4_K_M file size.",
+    "active_weight_gb": 1.81
   },
   {
     "id": "deepseek-r1-distill-qwen-7b-q8",
@@ -1703,7 +1707,8 @@
     "mmlu_score": 78.0,
     "swe_bench_score": null,
     "features": [],
-    "notes": "GGUF Q8_0 file size from Qwen3.5-35B-A3B-Q8_0.gguf."
+    "notes": "GGUF Q8_0 file size from Qwen3.5-35B-A3B-Q8_0.gguf.",
+    "active_weight_gb": 2.95
   },
   {
     "id": "qwen3.5-0.8b-q4",
@@ -1787,7 +1792,8 @@
     "mmlu_score": 78.0,
     "swe_bench_score": null,
     "features": [],
-    "notes": "GGUF Q4_K_M file size from Qwen3.5-35B-A3B-Q4_K_M.gguf."
+    "notes": "GGUF Q4_K_M file size from Qwen3.5-35B-A3B-Q4_K_M.gguf.",
+    "active_weight_gb": 1.76
   },
   {
     "id": "qwen3.5-122b-a10b-q8",
@@ -1801,7 +1807,8 @@
     "mmlu_score": 85.0,
     "swe_bench_score": null,
     "features": [],
-    "notes": "GGUF Q8_0 file size from Q8_0/Qwen3.5-122B-A10B-Q8_0-00003-of-00004.gguf."
+    "notes": "GGUF Q8_0 file size from Q8_0/Qwen3.5-122B-A10B-Q8_0-00003-of-00004.gguf.",
+    "active_weight_gb": 3.8
   },
   {
     "id": "qwen3.5-122b-a10b-q4",
@@ -1815,7 +1822,8 @@
     "mmlu_score": 85.0,
     "swe_bench_score": null,
     "features": [],
-    "notes": "GGUF Q4_K_M file size from Q4_K_M/Qwen3.5-122B-A10B-Q4_K_M-00002-of-00003.gguf."
+    "notes": "GGUF Q4_K_M file size from Q4_K_M/Qwen3.5-122B-A10B-Q4_K_M-00002-of-00003.gguf.",
+    "active_weight_gb": 1.91
   },
   {
     "id": "qwen3.5-397b-a17b-q8",
@@ -1829,7 +1837,8 @@
     "mmlu_score": 87.0,
     "swe_bench_score": null,
     "features": [],
-    "notes": "GGUF Q8_0 file size from Q8_0/Qwen3.5-397B-A17B-Q8_0-00005-of-00010.gguf."
+    "notes": "GGUF Q8_0 file size from Q8_0/Qwen3.5-397B-A17B-Q8_0-00005-of-00010.gguf.",
+    "active_weight_gb": 1.95
   },
   {
     "id": "qwen3.5-397b-a17b-q4",
@@ -1843,7 +1852,8 @@
     "mmlu_score": 87.0,
     "swe_bench_score": null,
     "features": [],
-    "notes": "GGUF Q4_K_M file size from Q4_K_M/Qwen3.5-397B-A17B-Q4_K_M-00004-of-00006.gguf."
+    "notes": "GGUF Q4_K_M file size from Q4_K_M/Qwen3.5-397B-A17B-Q4_K_M-00004-of-00006.gguf.",
+    "active_weight_gb": 0.98
   },
   {
     "id": "minimax-m2.5-q8",
@@ -1908,5 +1918,221 @@
       "tool_use"
     ],
     "notes": "GGUF Q4_K_M file size from Q4_K_M/GLM-5-Q4_K_M-00002-of-00011.gguf."
+  },
+  {
+    "id": "gemma-4-e2b-q8",
+    "name": "Gemma 4 E2B",
+    "params_b": 2.3,
+    "quantization": "Q8_0",
+    "weight_gb": 4.63,
+    "kv_per_1k_gb": 0.033,
+    "max_context_k": 128,
+    "layers": 35,
+    "mmlu_score": 60.0,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "35 layers, 1 KV head, head_dim 256 (MQA). Multimodal MoE edge model with 5:1 local:global attention (512-token sliding window). GGUF Q8_0 file size."
+  },
+  {
+    "id": "gemma-4-e2b-q4",
+    "name": "Gemma 4 E2B",
+    "params_b": 2.3,
+    "quantization": "Q4_K_M",
+    "weight_gb": 3.22,
+    "kv_per_1k_gb": 0.033,
+    "max_context_k": 128,
+    "layers": 35,
+    "mmlu_score": 60.0,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "35 layers, 1 KV head, head_dim 256 (MQA). Multimodal MoE edge model with 5:1 local:global attention (512-token sliding window). GGUF Q4_K_M file size."
+  },
+  {
+    "id": "gemma-4-e4b-q8",
+    "name": "Gemma 4 E4B",
+    "params_b": 4.5,
+    "quantization": "Q8_0",
+    "weight_gb": 7.48,
+    "kv_per_1k_gb": 0.08,
+    "max_context_k": 128,
+    "layers": 42,
+    "mmlu_score": 69.4,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "42 layers, 2 KV heads, head_dim 256. Multimodal MoE edge model with mixed sliding-window (512-token) and full attention. GGUF Q8_0 file size."
+  },
+  {
+    "id": "gemma-4-e4b-q4",
+    "name": "Gemma 4 E4B",
+    "params_b": 4.5,
+    "quantization": "Q4_K_M",
+    "weight_gb": 5.03,
+    "kv_per_1k_gb": 0.08,
+    "max_context_k": 128,
+    "layers": 42,
+    "mmlu_score": 69.4,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "42 layers, 2 KV heads, head_dim 256. Multimodal MoE edge model with mixed sliding-window (512-token) and full attention. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "gemma-4-26b-a4b-q8",
+    "name": "Gemma 4 26B A4B",
+    "params_b": 26.0,
+    "quantization": "Q8_0",
+    "weight_gb": 25.02,
+    "kv_per_1k_gb": 0.019,
+    "max_context_k": 256,
+    "layers": 30,
+    "mmlu_score": 82.6,
+    "swe_bench_score": null,
+    "active_weight_gb": 3.85,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "30 layers (5:1 local:global), 8 KV heads (local, sw=1024, head_dim 256), 2 KV heads (global, head_dim 512). Sparse MoE (128 experts, 8 active). KV per 1K from global attention only; local layers add ~0.20 GB fixed overhead. GGUF Q8_0 file size."
+  },
+  {
+    "id": "gemma-4-26b-a4b-q4",
+    "name": "Gemma 4 26B A4B",
+    "params_b": 26.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 15.87,
+    "kv_per_1k_gb": 0.019,
+    "max_context_k": 256,
+    "layers": 30,
+    "mmlu_score": 82.6,
+    "swe_bench_score": null,
+    "active_weight_gb": 2.44,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "30 layers (5:1 local:global), 8 KV heads (local, sw=1024, head_dim 256), 2 KV heads (global, head_dim 512). Sparse MoE (128 experts, 8 active). KV per 1K from global attention only; local layers add ~0.20 GB fixed overhead. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "gemma-4-31b-q8",
+    "name": "Gemma 4 31B",
+    "params_b": 31.0,
+    "quantization": "Q8_0",
+    "weight_gb": 30.39,
+    "kv_per_1k_gb": 0.076,
+    "max_context_k": 256,
+    "layers": 60,
+    "mmlu_score": 85.2,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "60 layers (5:1 local:global), 16 KV heads (local, head_dim 256, sw=1024), 4 KV heads (global, head_dim 512). KV per 1K from global attention only; local layers add ~0.78 GB fixed overhead. GGUF Q8_0 file size."
+  },
+  {
+    "id": "gemma-4-31b-q4",
+    "name": "Gemma 4 31B",
+    "params_b": 31.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 18.25,
+    "kv_per_1k_gb": 0.076,
+    "max_context_k": 256,
+    "layers": 60,
+    "mmlu_score": 85.2,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "60 layers (5:1 local:global), 16 KV heads (local, head_dim 256, sw=1024), 4 KV heads (global, head_dim 512). KV per 1K from global attention only; local layers add ~0.78 GB fixed overhead. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "nemotron-3-nano-4b-q8",
+    "name": "Nemotron 3 Nano 4B",
+    "params_b": 3.97,
+    "quantization": "Q8_0",
+    "weight_gb": 3.94,
+    "kv_per_1k_gb": 0.015,
+    "max_context_k": 256,
+    "layers": 42,
+    "mmlu_score": null,
+    "swe_bench_score": null,
+    "features": [
+      "reasoning",
+      "tool_use"
+    ],
+    "notes": "Hybrid Mamba-Transformer (4 attention + 38 Mamba-2 layers). 8 KV heads, head_dim 128 on attention layers only. KV estimate covers attention layers; Mamba layers use fixed-size state. GGUF Q8_0 file size."
+  },
+  {
+    "id": "nemotron-3-nano-4b-q4",
+    "name": "Nemotron 3 Nano 4B",
+    "params_b": 3.97,
+    "quantization": "Q4_K_M",
+    "weight_gb": 2.77,
+    "kv_per_1k_gb": 0.015,
+    "max_context_k": 256,
+    "layers": 42,
+    "mmlu_score": null,
+    "swe_bench_score": null,
+    "features": [
+      "reasoning",
+      "tool_use"
+    ],
+    "notes": "Hybrid Mamba-Transformer (4 attention + 38 Mamba-2 layers). 8 KV heads, head_dim 128 on attention layers only. KV estimate covers attention layers; Mamba layers use fixed-size state. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "nemotron-cascade-2-30b-a3b-q8",
+    "name": "Nemotron Cascade 2 30B A3B",
+    "params_b": 30.0,
+    "quantization": "Q8_0",
+    "weight_gb": 31.28,
+    "kv_per_1k_gb": 0.006,
+    "max_context_k": 256,
+    "layers": 52,
+    "mmlu_score": 79.8,
+    "swe_bench_score": null,
+    "active_weight_gb": 3.13,
+    "features": [
+      "reasoning",
+      "tool_use"
+    ],
+    "notes": "Hybrid Mamba-Transformer MoE (6 attention + 23 Mamba-2 + 23 MoE layers, 128 experts, 6 active). 2 KV heads, head_dim 128 on attention layers only. KV estimate covers attention layers. GGUF Q8_0 file size."
+  },
+  {
+    "id": "nemotron-cascade-2-30b-a3b-q4",
+    "name": "Nemotron Cascade 2 30B A3B",
+    "params_b": 30.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 23.03,
+    "kv_per_1k_gb": 0.006,
+    "max_context_k": 256,
+    "layers": 52,
+    "mmlu_score": 79.8,
+    "swe_bench_score": null,
+    "active_weight_gb": 2.3,
+    "features": [
+      "reasoning",
+      "tool_use"
+    ],
+    "notes": "Hybrid Mamba-Transformer MoE (6 attention + 23 Mamba-2 + 23 MoE layers, 128 experts, 6 active). 2 KV heads, head_dim 128 on attention layers only. KV estimate covers attention layers. GGUF Q4_K_M file size."
   }
 ]

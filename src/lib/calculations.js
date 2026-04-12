@@ -70,13 +70,18 @@ export function calcMaxContext(model, userVram) {
  *
  * tok/s ≈ bandwidth / (weight_gb + overhead)
  *
- * @param {{ weight_gb: number }} model
+ * For sparse MoE models, only the active expert weights are read per token.
+ * active_weight_gb captures this: VRAM still holds all weights, but bandwidth
+ * is bound by the active subset.
+ *
+ * @param {{ weight_gb: number, active_weight_gb?: number }} model
  * @param {number|null} bandwidth  Memory bandwidth in GB/s, or null if unknown
  * @returns {number|null} Estimated tokens per second, or null if bandwidth unknown
  */
 export function calcTokPerSec(model, bandwidth) {
   if (bandwidth == null) return null;
-  return Math.round(bandwidth / (model.weight_gb + INFERENCE_OVERHEAD_GB));
+  const effectiveWeight = model.active_weight_gb ?? model.weight_gb;
+  return Math.round(bandwidth / (effectiveWeight + INFERENCE_OVERHEAD_GB));
 }
 
 /**
@@ -404,9 +409,9 @@ export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerS
     noFit.sort((a, b) => compareScores(a.swe_bench_score, b.swe_bench_score) || b.weight_gb - a.weight_gb);
   } else {
     // Sort by quality (MMLU) descending, then by context/weight as tiebreaker
-    fits.sort((a, b) => b.mmlu_score - a.mmlu_score || b.maxCtxK - a.maxCtxK);
-    tight.sort((a, b) => b.mmlu_score - a.mmlu_score || b.maxCtxK - a.maxCtxK);
-    noFit.sort((a, b) => b.mmlu_score - a.mmlu_score || b.weight_gb - a.weight_gb);
+    fits.sort((a, b) => compareScores(a.mmlu_score, b.mmlu_score) || b.maxCtxK - a.maxCtxK);
+    tight.sort((a, b) => compareScores(a.mmlu_score, b.mmlu_score) || b.maxCtxK - a.maxCtxK);
+    noFit.sort((a, b) => compareScores(a.mmlu_score, b.mmlu_score) || b.weight_gb - a.weight_gb);
   }
 
   return { fits, tight, noFit };

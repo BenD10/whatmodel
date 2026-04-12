@@ -60,9 +60,11 @@ describe('models.json', () => {
       expect(model.max_context_k).toBeGreaterThan(0);
     });
 
-    it('has mmlu_score between 0 and 100', () => {
-      expect(model.mmlu_score).toBeGreaterThanOrEqual(0);
-      expect(model.mmlu_score).toBeLessThanOrEqual(100);
+    it('has mmlu_score that is null, undefined, or a number 0–100', () => {
+      if (model.mmlu_score != null) {
+        expect(model.mmlu_score).toBeGreaterThanOrEqual(0);
+        expect(model.mmlu_score).toBeLessThanOrEqual(100);
+      }
     });
 
     it('has swe_bench_score that is null, undefined, or a number 0–100', () => {

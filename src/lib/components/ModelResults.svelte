@@ -129,6 +129,9 @@
                   {#if v.ctxInfo}
                     <p class="reason variant-reason ram-note">{contextLabel(v.ctxInfo.vramCtxK)} on GPU, {contextLabel(v.ctxInfo.ramCtxK)} extended via system RAM</p>
                   {/if}
+                  {#if v.active_weight_gb}
+                    <p class="reason variant-reason moe-note">MoE — speed based on ~{v.active_weight_gb} GB active experts (full {v.weight_gb} GB loaded in VRAM)</p>
+                  {/if}
                 {/each}
               </div>
             </li>
@@ -174,6 +177,9 @@
                   {/if}
                   {#if !v.meetsMinSpeed && v.tokPerSec != null && !v.offloadInfo}
                     <p class="reason variant-reason">~{v.tokPerSec} tok/s — below your {minTokPerSec} tok/s minimum</p>
+                  {/if}
+                  {#if v.active_weight_gb}
+                    <p class="reason variant-reason moe-note">MoE — speed based on ~{v.active_weight_gb} GB active experts (full {v.weight_gb} GB loaded in VRAM)</p>
                   {/if}
                   {#if !v.meetsFeatures}
                     <p class="reason variant-reason">Missing features: {requiredFeatures.filter((f) => !(v.features ?? []).includes(f)).map((f) => FEATURE_LABELS[f] ?? f).join(', ')}</p>
@@ -599,6 +605,12 @@
     color: var(--text-muted);
     font-style: normal;
     opacity: 0.85;
+  }
+
+  .reason.moe-note {
+    color: var(--accent);
+    font-style: normal;
+    opacity: 0.8;
   }
 
   @media (max-width: 600px) {
