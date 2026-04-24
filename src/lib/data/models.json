@@ -2134,5 +2134,79 @@
       "tool_use"
     ],
     "notes": "Hybrid Mamba-Transformer MoE (6 attention + 23 Mamba-2 + 23 MoE layers, 128 experts, 6 active). 2 KV heads, head_dim 128 on attention layers only. KV estimate covers attention layers. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "qwen3.6-35b-a3b-q8",
+    "name": "Qwen3.6 35B A3B",
+    "params_b": 35,
+    "quantization": "Q8_0",
+    "weight_gb": 37.0,
+    "kv_per_1k_gb": 0.01,
+    "max_context_k": 256,
+    "layers": 40,
+    "mmlu_score": 85.2,
+    "swe_bench_score": 73.4,
+    "active_weight_gb": 3.18,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Multimodal sparse MoE: 35B total, 3B active (256 experts, 8 routed + 1 shared per token). Hybrid architecture: 10 blocks of (3 Gated DeltaNet -> MoE + 1 Gated Attention -> MoE). 40 total layers, only 10 use attention (16 Q heads, 2 KV heads, head_dim 128). KV estimate covers attention layers; DeltaNet layers use fixed-size recurrent state. Native 262K context, extensible to ~1M tokens via YaRN. MMLU-Pro 85.2 (MMLU-Redux 93.3), SWE-bench Verified 73.4, AIME 2026 92.7, GPQA Diamond 86.0, MMMU 81.7. Apache 2.0. GGUF Q8_0 file size estimate (BF16 reference: 69.4 GB)."
+  },
+  {
+    "id": "qwen3.6-35b-a3b-q4",
+    "name": "Qwen3.6 35B A3B",
+    "params_b": 35,
+    "quantization": "Q4_K_M",
+    "weight_gb": 22.4,
+    "kv_per_1k_gb": 0.01,
+    "max_context_k": 256,
+    "layers": 40,
+    "mmlu_score": 85.2,
+    "swe_bench_score": 73.4,
+    "active_weight_gb": 1.92,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Multimodal sparse MoE: 35B total, 3B active (256 experts, 8 routed + 1 shared per token). Hybrid architecture: 10 blocks of (3 Gated DeltaNet -> MoE + 1 Gated Attention -> MoE). 40 total layers, only 10 use attention (16 Q heads, 2 KV heads, head_dim 128). KV estimate covers attention layers; DeltaNet layers use fixed-size recurrent state. Native 262K context, extensible to ~1M tokens via YaRN. MMLU-Pro 85.2 (MMLU-Redux 93.3), SWE-bench Verified 73.4, AIME 2026 92.7, GPQA Diamond 86.0, MMMU 81.7. Apache 2.0. GGUF Q4_K_M file size from official release notes (22.4 GB)."
+  },
+  {
+    "id": "qwen3.6-27b-q8",
+    "name": "Qwen3.6 27B",
+    "params_b": 27,
+    "quantization": "Q8_0",
+    "weight_gb": 28.0,
+    "kv_per_1k_gb": 0.064,
+    "max_context_k": 256,
+    "layers": 64,
+    "mmlu_score": 86.2,
+    "swe_bench_score": 77.2,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Dense multimodal model. Hybrid architecture: 16 blocks of (3 Gated DeltaNet -> FFN + 1 Gated Attention -> FFN). 64 total layers, only 16 use attention (24 Q heads, 4 KV heads, head_dim 256, RoPE rotation_dim 64). DeltaNet sublayers use 48 V heads, 16 QK heads, head_dim 128. KV estimate covers attention layers; DeltaNet layers use fixed-size recurrent state. Hidden dim 5120, FFN intermediate 17,408, vocab 248,320. Multi-Token Prediction enables speculative decoding. Native 262K context, extensible to ~1M tokens via YaRN. MMLU-Pro 86.2 (MMLU-Redux 93.5), SWE-bench Verified 77.2, Terminal-Bench 2.0 59.3, GPQA Diamond 87.8, AIME 2026 94.1, LiveCodeBench v6 83.9. Apache 2.0. GGUF Q8_0 file size estimate."
+  },
+  {
+    "id": "qwen3.6-27b-q4",
+    "name": "Qwen3.6 27B",
+    "params_b": 27,
+    "quantization": "Q4_K_M",
+    "weight_gb": 16.5,
+    "kv_per_1k_gb": 0.064,
+    "max_context_k": 256,
+    "layers": 64,
+    "mmlu_score": 86.2,
+    "swe_bench_score": 77.2,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Dense multimodal model. Hybrid architecture: 16 blocks of (3 Gated DeltaNet -> FFN + 1 Gated Attention -> FFN). 64 total layers, only 16 use attention (24 Q heads, 4 KV heads, head_dim 256, RoPE rotation_dim 64). DeltaNet sublayers use 48 V heads, 16 QK heads, head_dim 128. KV estimate covers attention layers; DeltaNet layers use fixed-size recurrent state. Hidden dim 5120, FFN intermediate 17,408, vocab 248,320. Multi-Token Prediction enables speculative decoding. Native 262K context, extensible to ~1M tokens via YaRN. MMLU-Pro 86.2 (MMLU-Redux 93.5), SWE-bench Verified 77.2, Terminal-Bench 2.0 59.3, GPQA Diamond 87.8, AIME 2026 94.1, LiveCodeBench v6 83.9. Apache 2.0. GGUF Q4_K_M file size estimate."
   }
 ]
